@@ -30,6 +30,34 @@ const DEMO_RACES = [
     ],
     isRegistered: true,
   },
+    {
+    id: 4,
+    isOnline: true,
+    entriesLeft: 3,
+    firstPrize: 50000,
+    isRegistered: false,
+  },
+  {
+    id: 5,
+    isOnline: true,
+    entriesLeft: 8,
+    firstPrize: 500000,
+    isRegistered: false,
+  },
+  // Une course terminée
+  {
+    id: 6,
+    isOnline: false,
+    endedBy: "Carry Mart",
+    winner: "pseudoGagnant",
+    firstPrize: 50000,
+    participants: [
+      { pseudo: "John Doe", cashprize: 25000 },
+      { pseudo: "John Die", cashprize: 12500 },
+      { pseudo: "John Dae", cashprize: 500 },
+    ],
+    isRegistered: true,
+  },
 ];
 
 function MarqueeParticipants({ participants }) {

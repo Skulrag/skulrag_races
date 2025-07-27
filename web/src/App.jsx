@@ -55,11 +55,11 @@ const DEMO_TRACKS = [
 return (
     <BrowserRouter>
       <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col w-[70vw] h-[85vh] max-w-6xl max-h-[95vh] rounded-2xl shadow-xl overflow-hidden">
+        <div className="flex flex-col w-[85vw] h-[85vh] max-h-[95vh] overflow-hidden">
           {!pseudo ? (
-            <PseudoForm onSubmit={setPseudo} />
+            <PseudoForm onSubmit={handlePseudoSubmit} />
           ) : (
-            <>
+            <div className="flex flex-col w-[85vw] h-[85vh] max-h-[95vh] overflow-hidden rounded-2xl shadow-xl">
               {/* Header sur toutes les pages sauf sur le PseudoForm */}
               <AppHeader />
               <div className="flex-1 overflow-hidden">
@@ -68,10 +68,14 @@ return (
                   <Route path="/tracks/new" element={<div>Nouveau Track !</div>} />
                   <Route path="/races" element={<RacesScreen />} />
                   <Route path="/" element={<Navigate to="/tracks" />} />
+                  <Route
+                    path="*"
+                    element={<Navigate to="/" replace />}
+                  />
                   {/* ...autres routes */}
                 </Routes>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>

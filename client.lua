@@ -1,8 +1,8 @@
 RegisterCommand('openui', function()
     SetNuiFocus(true, true)
     SendNUIMessage({
-        type = "open",
-        message = "Salut depuis Lua via Vite !"
+        action = "skulrag_races_setVisible",
+        data = true
     })
 end)
 
@@ -12,7 +12,11 @@ RegisterNUICallback('doAction', function(data, cb)
     cb({result = "Succès côté LUA!"})
 end)
 
-RegisterNUICallback('closeUI', function(data, cb)
+RegisterNUICallback('skulrag_races_hideFrame', function(data, cb)
     SetNuiFocus(false, false)
-    cb({})
+    SendNUIMessage({
+        action = "skulrag_races_setVisible",
+        data = false
+    })
+    if cb then cb({}) end
 end)
