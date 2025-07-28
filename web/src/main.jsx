@@ -4,6 +4,7 @@ import './index.css'
 import './App.css';
 import App from './App.jsx'
 import { VisibilityProvider } from './providers/VisibilityProvider.jsx';
+import './i18n';
 
 
 createRoot(document.getElementById('root')).render(

@@ -1,0 +1,67 @@
+{
+"appHeader": {
+  "title": "Courses",
+  "tracks": "Circuits",
+  "races": "Courses",
+  "help": "Aide",
+  "newTrack": "Nouveau circuit"
+},
+"trackScreen": {
+  "noTrack": "Aucun circuit n’a été créée",
+  "onlyMine": "Affiche seulement mes circuits",
+  "plannedTimes": "Prévue : {{count}} fois",
+  "kms": "{{count}} kms",
+  "raceButton": "Concourir !",
+  "wheelScroll": "Roulez la molette pour monter/descendre",
+  "trackId": "ID : {{id}}",
+  "confirmDeleteTitle": "Delete track \"{{title}}\"?",
+  "cancel": "Cancel",
+  "confirm": "Delete"
+},
+"racesScreen": {
+  "filterInitiated": "Afficher seulement les courses que j'ai créées",
+  "filterParticipated": "Afficher seulement celles auxquelles j'ai participé",
+  "filterReady": "Afficher seulement les courses prêtes",
+  "filterEnded": "Afficher seulement les courses terminées",
+
+  "online": "Course en ligne !",
+  "ended": "Course terminée !",
+  "entriesLeft": "Places restantes : {{count}}",
+  "cancel": "Annuler la participation",
+  "register": "S’inscrire !",
+  "initiatedBy": "Organisée par : {{name}}",
+  "winner": "Le gagnant est",
+  "participants": "Participants :",
+  "firstPrizeTitle": "1er prix :",
+  "wheelScroll": "Roulez la molette pour naviguer",
+
+  "goToTracks": "Accéder aux circuits !",
+  "goToRaces": "Déjà ici !",
+  "registering": "Inscription à la course {{raceId}}",
+  "canceling": "Annulation pour la course {{raceId}}"
+},
+"pseudoForm": {
+  "title": "Courses",
+  "choose": "Choisissez VOTRE pseudo avec soin",
+  "placeholderPseudo": "Tapez votre pseudo",
+  "placeholderPin": "#Code PIN",
+  "confirm": "Valider"
+},
+"helpScreen": {
+  "instructions": "Sur la page Circuits, tu peux voir l’ID de chaque circuit.\n\nLes circuits non terminés sont en orange.\nCeux qui sont terminés sont en vert.\n\nCliquer sur un circuit non terminé ouvre une fenêtre pour le supprimer ou le confirmer.\n\nCliquer sur \"Concourir !\" ouvre un formulaire pour créer une course basée sur ton circuit.\nTu peux choisir une date, une heure de départ.\nTu peux définir un nombre max de participants et prévoir 4 cashprizes : un pour chaque membre du podium et le quatrième sera partagé entre tous les autres participants.\nLes cashprizes ne te seront pas débités, tu devras les distribuer par toi-même.\n\nUne fois un circuit visible dans la liste (en orange), tu peux ajouter autant de checkpoints que tu veux (parfois limité par l’application, cela sera précisé si besoin). Utilise simplement :\n",
+  "addCheckpointInfo": "pour ajouter un nouveau checkpoint depuis ta position actuelle.",
+  "instructions2": "Si le type de course est \"Sprint\" :\nLe dernier checkpoint ajouté avant de \"Confirmer\" sera la ligne d’arrivée.\n\nSi le type est \"Boucles\" :\nLe dernier checkpoint que tu ajoutes renverra les participants, une fois franchi, au premier checkpoint du circuit (ligne de départ).\n"
+},
+"createTrackScreen": {
+  "trackNamePlaceholder": "Taper le nom du circuit...",
+  "chooseType": "Choisir le type de course",
+  "type": {
+    "sprint": "Sprint",
+    "laps": "Laps"
+  },
+  "confirm": "Confirmer",
+  "cancel": "Annuler",
+  "instructionsTitle": "/!\\ IMPORTANT /!\\",
+  "instructions": "Vous êtes sur le point de démarrer la création d’un circuit. Pour cela, vous devez renseigner un nom, puis sélectionner le type de course :\n• sprint : Point A à un point B.\n• laps : Course ayant plusieurs tours.\nSi vous choisissez laps, vous pourrez renseigner le nombre de tours lors de la création d’une course à partir de ce circuit."
+}
+}

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from "react-i18next";
 
 export default function PseudoForm({ onSubmit }) {
   const [pseudo, setPseudo] = useState('');
   const [pin, setPin] = useState('');
   const [needPin, setNeedPin] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const handler = (event) => {
@@ -34,15 +36,15 @@ export default function PseudoForm({ onSubmit }) {
             &gt;S
           </span>
           <span className="font-mono text-white text-2xl font-light tracking-wider">
-            Races
+            {t("pseudoForm.title")}
           </span>
         </header>
         <div className="border-t border-[#4e7868] mb-8" />
         <form className="flex flex-col items-center gap-5" onSubmit={handleSubmit}>
-          <p className="font-mono text-[#bdbdbd] mb-2 text-center">Choose WISELY your pseudonyme</p>
+          <p className="font-mono text-[#bdbdbd] mb-2 text-center">{t("pseudoForm.choose")}</p>
           <input
             type="text"
-            placeholder="Type pseudonyme"
+            placeholder={t("pseudoForm.placeholderPseudo")}
             className="font-mono bg-black border border-[#4e7868] text-white text-lg rounded px-4 py-3 w-80 text-center outline-none focus:border-[#6eb595] transition font-mono"
             value={pseudo}
             onChange={(e) => setPseudo(e.target.value)}
@@ -51,7 +53,7 @@ export default function PseudoForm({ onSubmit }) {
           {needPin && (
             <input
               type="password"
-              placeholder="#Code PIN"
+              placeholder={t("pseudoForm.placeholderPin")}
               className="font-mono bg-black border border-[#4e7868] text-white text-lg rounded px-4 py-3 w-80 text-center outline-none focus:border-[#6eb595] transition font-mono"
               value={pin}
               onChange={(e) => setPin(e.target.value)}
@@ -62,7 +64,7 @@ export default function PseudoForm({ onSubmit }) {
             type="submit"
             className="w-80 py-4 mt-2 bg-[#4e7868] text-white text-lg rounded transition hover:bg-[#325546] font-medium font-mono"
           >
-            Confirm
+            {t("pseudoForm.confirm")}
           </button>
         </form>
       </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { useTranslation } from "react-i18next";
 // Dummy data exemple
 const DEMO_RACES = [
   {
@@ -7,7 +7,7 @@ const DEMO_RACES = [
     isOnline: true,
     entriesLeft: 3,
     firstPrize: 50000,
-    isRegistered: false,
+    isRegistered: true,
   },
   {
     id: 2,
@@ -60,50 +60,21 @@ const DEMO_RACES = [
   },
 ];
 
-function MarqueeParticipants({ participants }) {
-  // Texte défilant façon "marquee" (infini, horizontal)
-  const text = participants
-    .map((p) => `${p.pseudo} : ${p.cashprize}  $ ;`)
-    .join(" ");
-  return (
-    <div className="overflow-hidden whitespace-nowrap w-full">
-      <div
-        className="inline-block animate-marquee"
-        style={{ minWidth: "100%" }}
-      >
-        {text}
-      </div>
-    </div>
-  );
-}
-
-// Animation Tailwind à ajouter dans ton tailwind.config.js
-// 'marquee': {
-//   '0%': { transform: 'translateX(0%)' },
-//   '100%': { transform: 'translateX(-100%)' },
-// },
-// .animate-marquee { animation: marquee 10s linear infinite; }
-
 export default function RacesScreen() {
-  // States switch des filtres
+  const { t } = useTranslation();
   const [filters, setFilters] = useState({
     initiated: true,
-    participated: false,
+    participated: true,
     ready: true,
     ended: true,
   });
 
-  // Fonction de toggle pour chaque switch
-  const toggle = (k) =>
-    setFilters((f) => ({ ...f, [k]: !f[k] }));
+  const toggle = (k) => setFilters((f) => ({ ...f, [k]: !f[k] }));
 
-  // Logique de navigation (à remplacer par react-router... ici, simple : alerte)
-  const goToTracks = () => alert("Go to tracks!");
-  const goToRaces = () => alert("Déjà ici!");
-
-  // Dummy handle pour les boutons "register/cancel"
-  const handleRegister = (raceId) => alert("Registering for " + raceId);
-  const handleCancel = (raceId) => alert("Cancelling for " + raceId);
+  const goToTracks = () => alert(t("racesScreen.goToTracks"));
+  const goToRaces = () => alert(t("racesScreen.goToRaces"));
+  const handleRegister = (raceId) => alert(t("racesScreen.registering", { raceId }));
+  const handleCancel = (raceId) => alert(t("racesScreen.canceling", { raceId }));
 
   return (
     <div className="w-full h-full flex flex-col bg-black text-white font-mono overflow-hidden">
@@ -112,22 +83,22 @@ export default function RacesScreen() {
         <SwitchBtn
           checked={filters.initiated}
           onClick={() => toggle("initiated")}
-          text="Only show races I initiated"
+          text={t("racesScreen.filterInitiated")}
         />
         <SwitchBtn
           checked={filters.participated}
           onClick={() => toggle("participated")}
-          text="Only show races I participated"
+          text={t("racesScreen.filterParticipated")}
         />
         <SwitchBtn
           checked={filters.ready}
           onClick={() => toggle("ready")}
-          text="Only show ready races"
+          text={t("racesScreen.filterReady")}
         />
         <SwitchBtn
           checked={filters.ended}
           onClick={() => toggle("ended")}
-          text="Only show ended races"
+          text={t("racesScreen.filterEnded")}
         />
       </div>
 
@@ -138,38 +109,35 @@ export default function RacesScreen() {
             race.isOnline ? (
               <div
                 key={race.id}
-                className="bg-[#23312c] border border-green-200 p-4 flex flex-col min-h-[120px] justify-between"
+                className="bg-[#23312c] border border-[#3BE696] p-4 flex flex-col min-h-[120px] justify-between"
               >
                 <div className="flex">
-                  {/* Colonne gauche */}
                   <div className="flex-1">
-                    <div className="text-base mb-2 text-white">Race’s Online !</div>
-                    <div className="mt-8 text-base">Entries left : {race.entriesLeft}</div>
+                    <div className="text-base mb-2 text-white">{t("racesScreen.online")}</div>
+                    <div className="mt-8 text-base">{t("racesScreen.entriesLeft", { count: race.entriesLeft })}</div>
                   </div>
-                  {/* Milieu centré */}
                   <div className="flex-1 flex flex-col items-center justify-center">
                     <div className="text-lg text-white text-center">
-                      1st place cashprize :<br />
+                      {t("racesScreen.firstPrizeTitle")}<br />
                       <span className="text-2xl font-bold tracking-wide">
-                        {race.firstPrize.toLocaleString()}  $ 
+                        {race.firstPrize.toLocaleString()}   $  
                       </span>
                     </div>
                   </div>
-                  {/* Bouton droite */}
                   <div className="flex-1 flex items-end justify-end">
                     {!race.isRegistered ? (
                       <button
                         className="bg-[#202122] text-white px-6 py-2 self-end transition-transform duration-150 hover:scale-95"
                         onClick={() => handleRegister(race.id)}
                       >
-                        Register now !
+                        {t("racesScreen.register")}
                       </button>
                     ) : (
                       <button
-                        className="bg-red-800 text-white px-6 py-2 self-end transition-transform duration-150 hover:scale-95"
+                        className="bg-[#740000] text-white px-6 py-2 self-end transition-transform duration-150 hover:scale-95"
                         onClick={() => handleCancel(race.id)}
                       >
-                        Cancel participation
+                        {t("racesScreen.cancel")}
                       </button>
                     )}
                   </div>
@@ -178,30 +146,29 @@ export default function RacesScreen() {
             ) : (
               <div
                 key={race.id}
-                className="bg-[#23312c] border border-green-200 p-4 flex flex-col min-h-[120px] justify-between"
+                className="bg-[#23312c] border border-[#3BE696] p-4 flex flex-col min-h-[120px] justify-between"
               >
                 <div className="flex">
                   <div className="flex-1">
-                    <div className="text-base mb-2 text-white">Race’s ended !</div>
-                    <div className="mb-2">Initiated by : {race.endedBy}</div>
+                    <div className="text-base mb-2 text-white">{t("racesScreen.ended")}</div>
+                    <div className="mb-2">{t("racesScreen.initiatedBy", { name: race.endedBy })}</div>
                   </div>
-                  {/* Milieu centré */}
                   <div className="flex-1 flex flex-col items-center justify-center">
-                    <div className="font-bold">Winner is<br />{race.winner} !</div>
+                    <div className="font-bold">
+                      {t("racesScreen.winner")} <br />{race.winner} !
+                    </div>
                   </div>
-                  {/* Droite */}
                   <div className="flex-1 flex flex-col items-end justify-center">
                     <div>
-                      1st place cashprize :<br />
+                      {t("racesScreen.firstPrizeTitle")}<br />
                       <span className="text-2xl font-bold tracking-wide">
-                        {race.firstPrize.toLocaleString()} $
+                        {race.firstPrize.toLocaleString()}  $ 
                       </span>
                     </div>
                   </div>
                 </div>
-                {/* Marquee en bas */}
                 <div className="mt-2 text-xs flex items-center">
-                  <span className="text-white/60 mr-2">Participants :</span>
+                  <span className="text-white/60 mr-2">{t("racesScreen.participants")}</span>
                   <div className="w-full overflow-x-hidden">
                     <MarqueeParticipants participants={race.participants} />
                   </div>
@@ -212,13 +179,13 @@ export default function RacesScreen() {
         </div>
       </div>
 
-    {/* Bas de page ("Wheel Scroll...") */}
-    <div className="text-center mt-2 text-gray-400 flex-shrink-0">Wheel Scroll to go up/down</div>
+      {/* Bas de page */}
+      <div className="text-center mt-2 text-gray-400 flex-shrink-0">{t("racesScreen.wheelScroll")}</div>
     </div>
   );
 }
 
-// Switch style bouton rond, design très proche du tien
+// Switch bouton avec i18n !
 function SwitchBtn({ checked, onClick, text }) {
   return (
     <button
@@ -227,7 +194,7 @@ function SwitchBtn({ checked, onClick, text }) {
     >
       <div
         className={`w-9 h-5 rounded-full flex items-center bg-[#22352B] transition-colors ${
-          checked ? "bg-green-400" : ""
+          checked ? "bg-green-600" : ""
         }`}
       >
         <div
@@ -238,5 +205,21 @@ function SwitchBtn({ checked, onClick, text }) {
       </div>
       <span className="ml-2 text-sm">{text}</span>
     </button>
+  );
+}
+
+function MarqueeParticipants({ participants }) {
+  const text = participants
+    .map((p) => `${p.pseudo} :  $ {p.cashprize}   $  ;`)
+    .join(" ");
+  return (
+    <div className="overflow-hidden whitespace-nowrap w-full">
+      <div
+        className="inline-block animate-marquee"
+        style={{ minWidth: "100%" }}
+      >
+        {text}
+      </div>
+    </div>
   );
 }

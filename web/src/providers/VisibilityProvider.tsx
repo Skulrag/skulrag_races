@@ -29,7 +29,6 @@ export const VisibilityProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const keyHandler = (e: KeyboardEvent) => {
       if (["Backspace", "Escape"].includes(e.code)) {
         if (!isEnvBrowser()) fetchNui("skulrag_races_hideFrame");
-        else setVisible(!visible);
       }
     }
 

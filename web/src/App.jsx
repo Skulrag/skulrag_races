@@ -4,6 +4,8 @@ import AppHeader from "./components/AppHeader.jsx";
 import PseudoForm from "./components/PseudoForm.jsx";
 import TrackScreen from "./components/TrackScreen.jsx";
 import RacesScreen from "./components/RacesScreen.jsx";
+import HelpScreen from "./components/HelpScreen.jsx";
+import CreateTrack from './components/CreateTrack.jsx';
 
 export default function App() {
   const [pseudo, setPseudo] = useState(true);
@@ -65,8 +67,9 @@ return (
               <div className="flex-1 overflow-hidden">
                 <Routes>
                   <Route path="/tracks" element={<TrackScreen tracks={DEMO_TRACKS} />} />
-                  <Route path="/tracks/new" element={<div>Nouveau Track !</div>} />
+                  <Route path="/tracks/new" element={<CreateTrack />} />
                   <Route path="/races" element={<RacesScreen />} />
+                  <Route path="/help" element={<HelpScreen />} />
                   <Route path="/" element={<Navigate to="/tracks" />} />
                   <Route
                     path="*"

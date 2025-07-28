@@ -1,0 +1,67 @@
+{
+"appHeader": {
+  "title": "Races",
+  "tracks": "Tracks",
+  "races": "Races",
+  "help": "Help",
+  "newTrack": "New Track"
+},
+"trackScreen": {
+  "noTrack": "No track has been created",
+  "onlyMine": "Only shows my tracks",
+  "plannedTimes": "Planned: {{count}} times",
+  "kms": "{{count}} Kms",
+  "raceButton": "Race !",
+  "wheelScroll": "Wheel Scroll to go up/down",
+  "trackId": "ID: {{id}}",
+  "confirmDeleteTitle": "Supprimer le circuit « {{title}} » ?",
+  "cancel": "Annuler",
+  "confirm": "Supprimer"
+},
+"racesScreen": {
+  "filterInitiated": "Only show races I initiated",
+  "filterParticipated": "Only show races I participated",
+  "filterReady": "Only show ready races",
+  "filterEnded": "Only show ended races",
+
+  "online": "Race’s Online !",
+  "ended": "Race’s ended !",
+  "entriesLeft": "Entries left : {{count}}",
+  "cancel": "Cancel participation",
+  "register": "Register now !",
+  "initiatedBy": "Initiated by : {{name}}",
+  "winner": "Winner is",
+  "participants": "Participants :",
+  "firstPrizeTitle": "1st place cashprize :",
+  "wheelScroll": "Wheel Scroll to go up/down",
+
+  "goToTracks": "Go to tracks!",
+  "goToRaces": "Already here!",
+  "registering": "Registering for {{raceId}}",
+  "canceling": "Cancelling for {{raceId}}"
+},
+"pseudoForm": {
+  "title": "Races",
+  "choose": "Choose WISELY your pseudonym",
+  "placeholderPseudo": "Type your pseudonym",
+  "placeholderPin": "#PIN Code",
+  "confirm": "Confirm"
+},
+"helpScreen": {
+  "instructions": "On the Tracks page, you can see the track ID on each track.\n\nNot finished tracks are Orange.\nFinished ones are Green.\n\nClicking a track that is not finished, opens a modal so you can Remove or Confirm the track.\n\nClicking on \"Race !\" opens a form to create a race based on your track.\nHere you can select a date, hour, when the race will start.\nYou can add max number of participants and add 4 cashprizes: 1 for each podium member, and the fourth will be divided among all other participants.\nCashprizes will not be debited from you; you will have to distribute them yourself.\n\nOnce a track appears on the list (orange one), you can add as many checkpoints as you want, sometimes limited by the application (if so, it will be mentioned). Simply use the following :\n",
+  "addCheckpointInfo": "to add a new checkpoint from your exact position.",
+  "instructions2": "If the race type is \"Sprint\":\nThe last checkpoint you add before \"Confirming\" the race will be the finish line.\n\nIf the race type is \"Laps\":\nThe last checkpoint you add will redirect participants, once they pass through it, to the first one of the race (start line).\n"
+},
+"createTrackScreen": {
+    "trackNamePlaceholder": "Type track name...",
+    "chooseType": "Choose race type",
+    "type": {
+      "sprint": "Sprint",
+      "laps": "Laps"
+    },
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "instructionsTitle": "/!\\ IMPORTANT /!\\",
+    "instructions": "You are about to start creating a new track. Enter a name, then select the race type:\n• sprint: from point A to point B.\n• laps: race with several laps.\nIf you choose laps, you will be able to set the number of laps when creating a race from this track."
+}
+}
