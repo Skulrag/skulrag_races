@@ -6,67 +6,55 @@ import TrackScreen from "./components/TrackScreen.jsx";
 import RacesScreen from "./components/RacesScreen.jsx";
 import HelpScreen from "./components/HelpScreen.jsx";
 import CreateTrack from './components/CreateTrack.jsx';
+import { fetchNui } from "./utils/fetchNui.js";
 
 export default function App() {
   const [pseudo, setPseudo] = useState(true);
-// --- Utilisation : dummy data ---
-const DEMO_TRACKS = [
-  {id:1, title:"Title", planned:23, kms:11},
-  {id:2, title:"Title", planned:23, kms:11},
-  {id:3, title:"Title", planned:23, kms:11},
-  {id:3, title:"Title", planned:23, kms:11},
-  {id:1, title:"Title", planned:23, kms:11},
-  {id:2, title:"Title", planned:23, kms:11},
-  {id:3, title:"Title", planned:23, kms:11},
-  {id:3, title:"Title", planned:23, kms:11},  
-  {id:1, title:"Title", planned:23, kms:11},
-  {id:2, title:"Title", planned:23, kms:11},
-  {id:3, title:"Title", planned:23, kms:11},
-  {id:3, title:"Title", planned:23, kms:11},  
-  {id:1, title:"Title", planned:23, kms:11},
-  {id:2, title:"Title", planned:23, kms:11},
-  {id:3, title:"Title", planned:23, kms:11},
-  {id:3, title:"Title", planned:23, kms:11},  
-  {id:1, title:"Title", planned:23, kms:11},
-  {id:2, title:"Title", planned:23, kms:11},
-  {id:3, title:"Title", planned:23, kms:11},
-  {id:3, title:"Title", planned:23, kms:11},  
-  {id:1, title:"Title", planned:23, kms:11},
-  {id:2, title:"Title", planned:23, kms:11},
-  {id:3, title:"Title", planned:23, kms:11},
-  {id:3, title:"Title", planned:23, kms:11},  
-  {id:1, title:"Title", planned:23, kms:11},
-  {id:2, title:"Title", planned:23, kms:11},
-  {id:3, title:"Title", planned:23, kms:11},
-  {id:3, title:"Title", planned:23, kms:11},
-  // ...
-];
+  const [loading, setLoading] = useState(false);
+  // --- Utilisation : dummy data ---
+  const DEMO_TRACKS = [
+    { id: 1, title: "Title", planned: 23, kms: 11 },
+    { id: 2, title: "Title", planned: 23, kms: 11 }
+  ];
 
   useEffect(() => {
-    // Vérifie le localStorage au chargement
-    const saved = localStorage.getItem("pseudo");
-    if (saved) setPseudo(saved);
+    setLoading(true);
+    fetchNui('__sk_races:getPseudo').then(({ pseudo }) => {
+      setPseudo(pseudo);
+      setLoading(false);
+    }
+    );
   }, []);
 
   // Handler pour récupérer le pseudo de PseudoForm
-  function handlePseudoSubmit(newPseudo) {
-    setPseudo(newPseudo);
-    localStorage.setItem("pseudo", newPseudo);
+  const handlePseudoSubmit = async (formData) => {
+    return await fetchNui('__sk_races:postPseudoForm', {
+      pseudo: formData?.get('pseudo'),
+      pin: formData?.get('pin')
+    });
   }
 
-return (
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-transparent">
+        {/* Loader stylé, ici un simple spinner */}
+        <span className="animate-spin inline-block h-12 w-12 border-4 border-[#53756E] rounded-full border-t-transparent"></span>
+      </div>
+    );
+  }
+  return (
     <BrowserRouter>
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col w-[85vw] h-[85vh] max-h-[95vh] overflow-hidden">
           {!pseudo ? (
-            <PseudoForm onSubmit={handlePseudoSubmit} />
+            <PseudoForm onSubmit={handlePseudoSubmit} setPseudo={setPseudo} />
           ) : (
             <div className="flex flex-col w-[85vw] h-[85vh] max-h-[95vh] overflow-hidden rounded-2xl shadow-xl">
               {/* Header sur toutes les pages sauf sur le PseudoForm */}
               <AppHeader />
               <div className="flex-1 overflow-hidden">
                 <Routes>
-                  <Route path="/tracks" element={<TrackScreen tracks={DEMO_TRACKS} />} />
+                  <Route path="/tracks" element={<TrackScreen />} />
                   <Route path="/tracks/new" element={<CreateTrack />} />
                   <Route path="/races" element={<RacesScreen />} />
                   <Route path="/help" element={<HelpScreen />} />

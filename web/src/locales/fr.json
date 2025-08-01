@@ -10,7 +10,7 @@
   "noTrack": "Aucun circuit n’a été créée",
   "onlyMine": "Affiche seulement mes circuits",
   "plannedTimes": "Prévue : {{count}} fois",
-  "kms": "{{count}} kms",
+  "kms": "Distance : {{count}} kms",
   "raceButton": "Concourir !",
   "wheelScroll": "Roulez la molette pour monter/descendre",
   "trackId": "ID : {{id}}",

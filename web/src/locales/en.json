@@ -10,7 +10,7 @@
   "noTrack": "No track has been created",
   "onlyMine": "Only shows my tracks",
   "plannedTimes": "Planned: {{count}} times",
-  "kms": "{{count}} Kms",
+  "kms": "Distance : {{count}} Kms",
   "raceButton": "Race !",
   "wheelScroll": "Wheel Scroll to go up/down",
   "trackId": "ID: {{id}}",

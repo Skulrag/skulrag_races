@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import SwitchButton from "./SwitchButton.jsx";
 // Dummy data exemple
 const DEMO_RACES = [
   {
@@ -80,22 +81,22 @@ export default function RacesScreen() {
     <div className="w-full h-full flex flex-col bg-black text-white font-mono overflow-hidden">
       {/* FILTRES */}
       <div className="flex space-x-8 mb-6 mt-4 px-8">
-        <SwitchBtn
+        <SwitchButton
           checked={filters.initiated}
           onClick={() => toggle("initiated")}
           text={t("racesScreen.filterInitiated")}
         />
-        <SwitchBtn
+        <SwitchButton
           checked={filters.participated}
           onClick={() => toggle("participated")}
           text={t("racesScreen.filterParticipated")}
         />
-        <SwitchBtn
+        <SwitchButton
           checked={filters.ready}
           onClick={() => toggle("ready")}
           text={t("racesScreen.filterReady")}
         />
-        <SwitchBtn
+        <SwitchButton
           checked={filters.ended}
           onClick={() => toggle("ended")}
           text={t("racesScreen.filterEnded")}
@@ -182,29 +183,6 @@ export default function RacesScreen() {
       {/* Bas de page */}
       <div className="text-center mt-2 text-gray-400 flex-shrink-0">{t("racesScreen.wheelScroll")}</div>
     </div>
-  );
-}
-
-// Switch bouton avec i18n !
-function SwitchBtn({ checked, onClick, text }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center space-x-2 focus:outline-none`}
-    >
-      <div
-        className={`w-9 h-5 rounded-full flex items-center bg-[#22352B] transition-colors ${
-          checked ? "bg-green-600" : ""
-        }`}
-      >
-        <div
-          className={`w-5 h-5 rounded-full bg-white shadow transform transition-transform ${
-            checked ? "translate-x-4" : "translate-x-0"
-          }`}
-        />
-      </div>
-      <span className="ml-2 text-sm">{text}</span>
-    </button>
   );
 }
 

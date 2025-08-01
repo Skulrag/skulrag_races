@@ -1,13 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import RaceModal from "./RaceModal.jsx";
-// Pense à bien avoir importé RaceModal dans ce fichier !
+import { fetchNui } from "../utils/fetchNui.js";
 
-export default function TrackScreen({ tracks }) {
+export default function TrackScreen() {
   const [showModal, setShowModal] = useState(false);
+  const [delayedLoading, setDelayedLoading] = useState(false);
   const [selectedTrack, setSelectedTrack] = useState(null);
   const [trackToDelete, setTrackToDelete] = useState(null);
+  const [tracks, setTracks] = useState([]);
+  const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
+
+  function fetchTracks() {
+    setLoading(true);
+    fetchNui('__sk_races:getTracks')
+      .then((tracks) => setTracks(tracks))
+      .finally(() => setLoading(false));
+  }
+  useEffect(() => { fetchTracks(); }, []);
+
+  async function onDelete(track) {
+    await fetchNui('__sk_races:deleteTrack', { track });
+    fetchTracks(); // Pour garder la vérité du serveur
+    setTrackToDelete(null);
+  }
+
+  useEffect(() => {
+    let timer;
+    if (loading) {
+      timer = setTimeout(() => setDelayedLoading(true), 200);
+    } else {
+      setDelayedLoading(false);
+      clearTimeout(timer);
+    }
+    return () => clearTimeout(timer);
+  }, [loading]);
+
+  if (delayedLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-transparent">
+        <span className="animate-spin inline-block h-12 w-12 border-4 border-[#53756E] rounded-full border-t-transparent"></span>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full flex flex-col text-white font-mono overflow-hidden bg-[#000000]">
@@ -32,12 +68,12 @@ export default function TrackScreen({ tracks }) {
                         {t("trackScreen.trackId", { id: track.id })}
                       </span>
                       <div>
-                        <div className="text-lg">{track.title}</div>
+                        <div className="text-lg">{track.name}</div>
                         <div className="text-sm mt-2">
                           {t("trackScreen.plannedTimes", { count: track.planned })}
                         </div>
                         <div className="text-sm">
-                          {t("trackScreen.kms", { count: track.kms })}
+                          {t("trackScreen.kms", { count: (track.distance / 1000).toFixed(3) })}
                         </div>
                       </div>
 
@@ -85,21 +121,21 @@ export default function TrackScreen({ tracks }) {
 
       {trackToDelete && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
-          <div className="bg-[#1c2023] rounded-xl shadow-xl p-8 max-w-xs w-full flex flex-col items-center">
+          <div className="bg-black border-25 border-[#344D42] shadow-xl p-8 max-w-xs w-full flex flex-col items-center">
             <div className="mb-4 text-center text-white font-semibold">
-              {t("trackScreen.confirmDeleteTitle", { title: trackToDelete.title })}
+              {t("trackScreen.confirmDeleteTitle", { title: trackToDelete.name })}
             </div>
             <div className="flex gap-4 mt-4">
               <button
-                className="px-4 py-1 bg-gray-700 text-white rounded hover:bg-gray-600"
+                className="px-4 py-1 text-white transition-transform duration-150 hover:scale-95"
                 onClick={() => setTrackToDelete(null)}
               >
                 {t("trackScreen.cancel")}
               </button>
               <button
-                className="px-4 py-1 bg-red-700 text-white rounded hover:bg-red-800"
+                className="px-4 py-1 bg-[#840D0D] text-white transition-transform duration-150 hover:scale-95"
                 onClick={() => {
-                  onDelete && onDelete(trackToDelete);
+                  onDelete(trackToDelete);
                   setTrackToDelete(null);
                 }}
               >
