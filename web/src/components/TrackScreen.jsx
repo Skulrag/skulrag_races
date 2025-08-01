@@ -12,6 +12,8 @@ export default function TrackScreen() {
   const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
 
+
+
   function fetchTracks() {
     setLoading(true);
     fetchNui('__sk_races:getTracks')

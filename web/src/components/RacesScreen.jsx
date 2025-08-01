@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import SwitchButton from "./SwitchButton.jsx";
+import { fetchNui } from "../utils/fetchNui.js";
 // Dummy data exemple
 const DEMO_RACES = [
   {
@@ -31,7 +32,7 @@ const DEMO_RACES = [
     ],
     isRegistered: true,
   },
-    {
+  {
     id: 4,
     isOnline: true,
     entriesLeft: 3,
@@ -64,18 +65,46 @@ const DEMO_RACES = [
 export default function RacesScreen() {
   const { t } = useTranslation();
   const [filters, setFilters] = useState({
-    initiated: true,
+    owned: true,
     participated: true,
     ready: true,
-    ended: true,
+    finished: false,
   });
+  const [races, setRaces] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [delayedLoading, setDelayedLoading] = useState(false);
+
 
   const toggle = (k) => setFilters((f) => ({ ...f, [k]: !f[k] }));
 
-  const goToTracks = () => alert(t("racesScreen.goToTracks"));
-  const goToRaces = () => alert(t("racesScreen.goToRaces"));
   const handleRegister = (raceId) => alert(t("racesScreen.registering", { raceId }));
   const handleCancel = (raceId) => alert(t("racesScreen.canceling", { raceId }));
+
+  function fetchRaces() {
+    setLoading(true);
+    fetchNui('__sk_races:getRaces', filters).then((races) => setRaces(races)).finally(() => setLoading(false));
+  }
+
+  useEffect(() => { fetchRaces(); }, [filters]);
+
+  useEffect(() => {
+    let timer;
+    if (loading) {
+      timer = setTimeout(() => setDelayedLoading(true), 200);
+    } else {
+      setDelayedLoading(false);
+      clearTimeout(timer);
+    }
+    return () => clearTimeout(timer);
+  }, [loading]);
+
+  if (delayedLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-transparent">
+        <span className="animate-spin inline-block h-12 w-12 border-4 border-[#53756E] rounded-full border-t-transparent"></span>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-full flex flex-col bg-black text-white font-mono overflow-hidden">
@@ -106,7 +135,7 @@ export default function RacesScreen() {
       {/* LISTE DES COURSES */}
       <div className="flex-1 flex justify-center items-center overflow-hidden">
         <div className="w-[70%] h-[70%] max-w-full max-h-full overflow-auto flex flex-col gap-6">
-          {DEMO_RACES.map((race) =>
+          {races.map((race) =>
             race.isOnline ? (
               <div
                 key={race.id}
@@ -119,9 +148,9 @@ export default function RacesScreen() {
                   </div>
                   <div className="flex-1 flex flex-col items-center justify-center">
                     <div className="text-lg text-white text-center">
-                      {t("racesScreen.firstPrizeTitle")}<br />
+                      {t("racesScreen.cashprize")}<br />
                       <span className="text-2xl font-bold tracking-wide">
-                        {race.firstPrize.toLocaleString()}   $  
+                        {race.cashprize}   $
                       </span>
                     </div>
                   </div>
@@ -152,28 +181,28 @@ export default function RacesScreen() {
                 <div className="flex">
                   <div className="flex-1">
                     <div className="text-base mb-2 text-white">{t("racesScreen.ended")}</div>
-                    <div className="mb-2">{t("racesScreen.initiatedBy", { name: race.endedBy })}</div>
+                    <div className="mb-2">{t("racesScreen.initiatedBy", { name: race.pseudo })}</div>
                   </div>
-                  <div className="flex-1 flex flex-col items-center justify-center">
+                  {/* <div className="flex-1 flex flex-col items-center justify-center">
                     <div className="font-bold">
                       {t("racesScreen.winner")} <br />{race.winner} !
                     </div>
-                  </div>
+                  </div> */}
                   <div className="flex-1 flex flex-col items-end justify-center">
                     <div>
-                      {t("racesScreen.firstPrizeTitle")}<br />
+                      {t("racesScreen.cashprize")}<br />
                       <span className="text-2xl font-bold tracking-wide">
-                        {race.firstPrize.toLocaleString()}  $ 
+                        {race.cashprize}  $
                       </span>
                     </div>
                   </div>
                 </div>
-                <div className="mt-2 text-xs flex items-center">
+                {/* <div className="mt-2 text-xs flex items-center">
                   <span className="text-white/60 mr-2">{t("racesScreen.participants")}</span>
                   <div className="w-full overflow-x-hidden">
                     <MarqueeParticipants participants={race.participants} />
                   </div>
-                </div>
+                </div> */}
               </div>
             )
           )}

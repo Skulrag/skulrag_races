@@ -32,7 +32,7 @@
   "initiatedBy": "Initiated by : {{name}}",
   "winner": "Winner is",
   "participants": "Participants :",
-  "firstPrizeTitle": "1st place cashprize :",
+  "cashprize": "Cashprize total :",
   "wheelScroll": "Wheel Scroll to go up/down",
 
   "goToTracks": "Go to tracks!",
@@ -63,5 +63,14 @@
     "cancel": "Cancel",
     "instructionsTitle": "/!\\ IMPORTANT /!\\",
     "instructions": "You are about to start creating a new track. Enter a name, then select the race type:\n• sprint: from point A to point B.\n• laps: race with several laps.\nIf you choose laps, you will be able to set the number of laps when creating a race from this track."
+},
+"createRaceScreen": {
+  "loading": "Creation...",
+  "confirm": "Confirm",
+  "chooseType": "Choose race type",
+    "type": {
+    "legal": "Legal",
+    "illegal": "Illegal"
+  }
 }
 }

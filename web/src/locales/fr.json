@@ -32,7 +32,7 @@
   "initiatedBy": "Organisée par : {{name}}",
   "winner": "Le gagnant est",
   "participants": "Participants :",
-  "firstPrizeTitle": "1er prix :",
+  "cashprize": "Cashprize total :",
   "wheelScroll": "Roulez la molette pour naviguer",
 
   "goToTracks": "Accéder aux circuits !",
@@ -63,5 +63,14 @@
   "cancel": "Annuler",
   "instructionsTitle": "/!\\ IMPORTANT /!\\",
   "instructions": "Vous êtes sur le point de démarrer la création d’un circuit. Pour cela, vous devez renseigner un nom, puis sélectionner le type de course :\n• sprint : Point A à un point B.\n• laps : Course ayant plusieurs tours.\nSi vous choisissez laps, vous pourrez renseigner le nombre de tours lors de la création d’une course à partir de ce circuit."
+},
+"createRaceScreen": {
+  "loading": "Création...",
+  "confirm": "Confirmer",
+  "chooseType": "Choose race type",
+  "type": {
+    "legal": "Legal",
+    "illegal": "Illegal"
+  }
 }
 }
