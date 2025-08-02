@@ -65,20 +65,32 @@ const DEMO_RACES = [
 export default function RacesScreen() {
   const { t } = useTranslation();
   const [filters, setFilters] = useState({
-    owned: true,
+    owned: false,
     participated: true,
     ready: true,
     finished: false,
   });
-  const [races, setRaces] = useState([]);
+  const [races, setRaces] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [registerLoadingId, setRegisterLoadingId] = useState(null);
   const [delayedLoading, setDelayedLoading] = useState(false);
 
 
   const toggle = (k) => setFilters((f) => ({ ...f, [k]: !f[k] }));
 
-  const handleRegister = (raceId) => alert(t("racesScreen.registering", { raceId }));
-  const handleCancel = (raceId) => alert(t("racesScreen.canceling", { raceId }));
+  const handleRegister = (id) => {
+    setRegisterLoadingId(id);
+    fetchNui('__sk_races:postRegisterToRace', { id }).then(() => {
+      fetchRaces();
+    }).finally(() => setRegisterLoadingId(null));
+  }
+
+  const handleCancel = (id) => {
+    setRegisterLoadingId(id);
+    fetchNui('__sk_races:postUnregisterFromRace', { id }).then(() => {
+      fetchRaces();
+    }).finally(() => setRegisterLoadingId(null));
+  }
 
   function fetchRaces() {
     setLoading(true);
@@ -111,8 +123,8 @@ export default function RacesScreen() {
       {/* FILTRES */}
       <div className="flex space-x-8 mb-6 mt-4 px-8">
         <SwitchButton
-          checked={filters.initiated}
-          onClick={() => toggle("initiated")}
+          checked={filters.owned}
+          onClick={() => toggle("owned")}
           text={t("racesScreen.filterInitiated")}
         />
         <SwitchButton
@@ -126,8 +138,8 @@ export default function RacesScreen() {
           text={t("racesScreen.filterReady")}
         />
         <SwitchButton
-          checked={filters.ended}
-          onClick={() => toggle("ended")}
+          checked={filters.finished}
+          onClick={() => toggle("finished")}
           text={t("racesScreen.filterEnded")}
         />
       </div>
@@ -135,7 +147,7 @@ export default function RacesScreen() {
       {/* LISTE DES COURSES */}
       <div className="flex-1 flex justify-center items-center overflow-hidden">
         <div className="w-[70%] h-[70%] max-w-full max-h-full overflow-auto flex flex-col gap-6">
-          {races.map((race) =>
+          {races && races.map((race) =>
             race.isOnline ? (
               <div
                 key={race.id}
@@ -160,14 +172,28 @@ export default function RacesScreen() {
                         className="bg-[#202122] text-white px-6 py-2 self-end transition-transform duration-150 hover:scale-95"
                         onClick={() => handleRegister(race.id)}
                       >
-                        {t("racesScreen.register")}
+                        {registerLoadingId === race.id ? (
+                          <svg className="animate-spin h-5 w-5 mx-auto" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                          </svg>
+                        ) : (
+                          t("racesScreen.register")
+                        )}
                       </button>
                     ) : (
                       <button
                         className="bg-[#740000] text-white px-6 py-2 self-end transition-transform duration-150 hover:scale-95"
                         onClick={() => handleCancel(race.id)}
                       >
-                        {t("racesScreen.cancel")}
+                        {registerLoadingId === race.id ? (
+                          <svg className="animate-spin h-5 w-5 mx-auto" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                          </svg>
+                        ) : (
+                          t("racesScreen.cancel")
+                        )}
                       </button>
                     )}
                   </div>
@@ -197,12 +223,12 @@ export default function RacesScreen() {
                     </div>
                   </div>
                 </div>
-                {/* <div className="mt-2 text-xs flex items-center">
+                <div className="mt-2 text-xs flex items-center">
                   <span className="text-white/60 mr-2">{t("racesScreen.participants")}</span>
-                  <div className="w-full overflow-x-hidden">
-                    <MarqueeParticipants participants={race.participants} />
-                  </div>
-                </div> */}
+                  {/* <div className="w-full overflow-x-hidden">
+                    <MarqueeParticipants participants={race.registeredPlayers} />
+                  </div> */}
+                </div>
               </div>
             )
           )}
@@ -216,6 +242,7 @@ export default function RacesScreen() {
 }
 
 function MarqueeParticipants({ participants }) {
+  if (!participants) return;
   const text = participants
     .map((p) => `${p.pseudo} :  $ {p.cashprize}   $  ;`)
     .join(" ");

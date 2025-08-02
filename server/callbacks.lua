@@ -48,7 +48,6 @@ lib.callback.register('__sk_races:postCreateTrack', function(source, data)
             {player.PlayerData.citizenid, name, type})
     end)
     if not id then
-        print('message', message)
         return {
             ['success'] = false
         };
@@ -65,17 +64,14 @@ lib.callback.register('__sk_races:getTracks', function(source)
         return MySQL.query.await('SELECT * FROM `skulrag_races_tracks` WHERE identifier = ?',
             {player.PlayerData.citizenid})
     end)
-    print(result);
     return result;
 end)
 
 lib.callback.register('__sk_races:deleteTrack', function(source, data)
     local id = data.track.id
-    print('ID', id)
     local result = pcall(function()
         return MySQL.query.await('DELETE FROM `skulrag_races_tracks` WHERE id = ?', {id})
     end)
-    print(result);
     return result;
 end)
 
@@ -85,7 +81,8 @@ lib.callback.register('__sk_races:postCreateRace', function(source, data)
     local id, message = pcall(function()
         return MySQL.insert.await(
             'INSERT INTO `skulrag_races_races` (identifier, trackId, type, date, laps, cashprize, entries) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            {player.PlayerData.citizenid, data.trackId, data.type, isoToMySQLDate(data.date), data.laps, data.cashprize, data.entries})
+            {player.PlayerData.citizenid, data.trackId, data.type, isoToMySQLDate(data.date), data.laps, data.cashprize,
+             data.entries})
     end)
     if not id then
         return {
@@ -104,8 +101,6 @@ lib.callback.register('__sk_races:getRaces', function(source, data)
     local filters = {}
     local params = {}
 
-    print('data.finished', data.finished)
-    print('data.owned', data.owned)
     if data.finished then
         table.insert(filters, '`r`.`date` < NOW()')
     end
@@ -132,29 +127,162 @@ lib.callback.register('__sk_races:getRaces', function(source, data)
     -- Ajoute "isOnline" à chaque course selon la date
     local currentTime = os.time()
     for i, row in ipairs(result) do
+        -- isOnline
         local isOnline = false
         local timestamp
-
-        -- Convertit le champ en string ou number vers secondes
         if row.date then
-            -- Si string, convertir en nombre
             local num = tonumber(row.date)
             if num then
-                -- timestamp en millisecondes → secondes
                 timestamp = math.floor(num / 1000)
                 isOnline = timestamp > currentTime
             end
         end
-
         row.isOnline = isOnline
-        print('row.isOnline', row.isOnline)
 
-        print('row.entries', row.entries)
-        print('#row.registeredPlayers', #row.registeredPlayers)
+        -- registeredPlayers
+        local registeredPlayers = {}
+        if row.registeredPlayers and row.registeredPlayers ~= "" then
+            local decoded = json.decode(row.registeredPlayers)
+            if type(decoded) == "table" then
+                registeredPlayers = decoded
+            end
+        end
 
-        row.entriesLeft = row.entries - #row.registeredPlayers
+        -- isRegistered
+        local isRegistered = false
+        for _, v in ipairs(registeredPlayers) do
+            if v == player.PlayerData.citizenid then
+                isRegistered = true
+                break
+            end
+        end
+        row.isRegistered = isRegistered
+
+        -- entriesLeft
+        row.entriesLeft = row.entries - #registeredPlayers
     end
 
     return result
 end)
 
+lib.callback.register('__sk_races:postRegisterToRace', function(source, data)
+    local _source = source
+    local player = exports.qbx_core:GetPlayer(_source)
+    if not player then
+        return {
+            success = false,
+            error = "No player."
+        }
+    end
+
+    local raceId = data.id -- <--- tu récupères ici l'id de la course
+    if not raceId then
+        return {
+            success = false,
+            error = "No race id."
+        }
+    end
+
+    -- Cherche la course
+    local race = MySQL.single.await('SELECT registeredPlayers FROM skulrag_races_races WHERE id = ?', {raceId})
+    if not race then
+        return {
+            success = false,
+            error = "Race not found."
+        }
+    end
+
+    -- registeredPlayers = JSON d'une liste d'identifiants ou table Lua
+    local currentPlayers = {}
+    if race.registeredPlayers and race.registeredPlayers ~= '' then
+        local decoded = json.decode(race.registeredPlayers)
+        if type(decoded) == "table" then
+            currentPlayers = decoded
+        end
+    end
+
+    -- Empêche l'inscription 2 fois
+    for _, v in ipairs(currentPlayers) do
+        if v == player.PlayerData.citizenid then
+            return {
+                success = false,
+                error = "Already registered."
+            }
+        end
+    end
+
+    -- Ajoute le joueur
+    table.insert(currentPlayers, player.PlayerData.citizenid)
+
+    -- Mets à jour la BDD
+    local affectedRows = MySQL.update.await('UPDATE skulrag_races_races SET registeredPlayers = ? WHERE id = ?',
+        {json.encode(currentPlayers), raceId})
+
+    return {
+        success = affectedRows > 0
+    }
+end)
+
+lib.callback.register('__sk_races:postUnregisterFromRace', function(source, data)
+    local _source = source
+    local player = exports.qbx_core:GetPlayer(_source)
+    if not player then
+        return {
+            success = false,
+            error = "No player."
+        }
+    end
+
+    local raceId = data.id -- ID de la course concernée
+    if not raceId then
+        return {
+            success = false,
+            error = "No race id."
+        }
+    end
+
+    -- Cherche la course
+    local race = MySQL.single.await('SELECT registeredPlayers FROM skulrag_races_races WHERE id = ?', {raceId})
+    if not race then
+        return {
+            success = false,
+            error = "Race not found."
+        }
+    end
+
+    -- Décodage de la liste des joueurs inscrits
+    local currentPlayers = {}
+    if race.registeredPlayers and race.registeredPlayers ~= '' then
+        local decoded = json.decode(race.registeredPlayers)
+        if type(decoded) == "table" then
+            currentPlayers = decoded
+        end
+    end
+
+    -- Recherche et suppression du joueur
+    local found = false
+    for i = #currentPlayers, 1, -1 do
+        if currentPlayers[i] == player.PlayerData.citizenid then
+            table.remove(currentPlayers, i)
+            found = true
+            break
+        end
+    end
+
+    if not found then
+        return {
+            success = false,
+            error = "Player not registered."
+        }
+    end
+
+    -- Mise à jour de la BDD
+    local affectedRows = MySQL.update.await(
+        'UPDATE skulrag_races_races SET registeredPlayers = ? WHERE id = ?',
+        {json.encode(currentPlayers), raceId}
+    )
+
+    return {
+        success = affectedRows > 0
+    }
+end)
