@@ -81,3 +81,13 @@ RegisterNUICallback('__sk_races:postUnregisterFromRace', function(data, cb)
   local result = lib.callback.await('__sk_races:postUnregisterFromRace', false, data)
   cb(result)
 end)
+
+
+RegisterNUICallback('__sk_races:getRacesHistory', function(data, cb)
+  while not playerLoaded do
+    print('SK_RACES WAITING FOR LOADED PLAYER...')
+    Citizen.Wait(3000)
+  end
+  local result = lib.callback.await('__sk_races:getRacesHistory', false, data)
+  cb(result)
+end)

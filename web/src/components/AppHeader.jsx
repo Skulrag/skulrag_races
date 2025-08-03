@@ -30,6 +30,14 @@ export default function AppHeader() {
             {t("appHeader.races")}
           </NavLink>
           <NavLink
+            to="/history"
+            className={({ isActive }) =>
+              "text-white py-1 px-2 " + (isActive ? "border-b-2 border-[#4e7868]" : "opacity-50 hover:opacity-100")
+            }
+          >
+            {t("appHeader.history")}
+          </NavLink>
+          <NavLink
             to="/help"
             className={({ isActive }) =>
               "text-white py-1 px-2 " + (isActive ? "border-b-2 border-[#4e7868]" : "opacity-50 hover:opacity-100")

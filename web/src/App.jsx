@@ -7,15 +7,11 @@ import RacesScreen from "./components/RacesScreen.jsx";
 import HelpScreen from "./components/HelpScreen.jsx";
 import CreateTrack from './components/CreateTrack.jsx';
 import { fetchNui } from "./utils/fetchNui.js";
+import RaceHistory from "./components/RaceHistory.jsx";
 
 export default function App() {
   const [pseudo, setPseudo] = useState(true);
   const [loading, setLoading] = useState(false);
-  // --- Utilisation : dummy data ---
-  const DEMO_TRACKS = [
-    { id: 1, title: "Title", planned: 23, kms: 11 },
-    { id: 2, title: "Title", planned: 23, kms: 11 }
-  ];
 
   useEffect(() => {
     setLoading(true);
@@ -58,6 +54,7 @@ export default function App() {
                   <Route path="/tracks/new" element={<CreateTrack />} />
                   <Route path="/races" element={<RacesScreen />} />
                   <Route path="/help" element={<HelpScreen />} />
+                  <Route path="/history" element={<RaceHistory />} />
                   <Route path="/" element={<Navigate to="/tracks" />} />
                   <Route
                     path="*"

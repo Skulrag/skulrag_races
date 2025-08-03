@@ -88,8 +88,8 @@ export default function RacesScreen() {
       {/* LISTE DES COURSES */}
       <div className="flex-1 flex justify-center items-center overflow-hidden">
         <div className="w-[70%] h-[70%] max-w-full max-h-full overflow-auto flex flex-col gap-6">
-          {races && races.filter(race => race.isOnline || race.isFinished).map((race) =>
-            race.isOnline ? (
+          {races && races.map((race) =>
+            // race.isOnline ? (
               <div
                 key={race.id}
                 className="relative bg-[#23312c] border border-[#3BE696] p-4 flex flex-col min-h-[120px] justify-between"
@@ -103,6 +103,7 @@ export default function RacesScreen() {
                 <div className="flex">
                   <div className="flex-1">
                     <div className="text-base mb-2 text-white">{t("racesScreen.online")}</div>
+                    <div className="text-lg">{race.trackName}</div>
                     <div className="mt-8 text-base">{t("racesScreen.entriesLeft", { count: race.entriesLeft })}</div>
                   </div>
                   <div className="flex-1 flex flex-col items-center justify-center">
@@ -146,46 +147,47 @@ export default function RacesScreen() {
                   </div>
                 </div>
               </div>
-            ) : (
-              <div
-                key={race.id}
-                className="relative bg-[#23312c] border border-[#3BE696] p-4 flex flex-col min-h-[120px] justify-between"
-              >
-                {/* Badge ID en haut à droite */}
-                {race.owner && (
-                  <span className="absolute top-3 right-3 bg-black text-[#3BE696] px-2 py-1 text-xs font-semibold shadow-sm z-10">
-                    #{race.id}
-                  </span>
-                )}
-                <div className="flex">
-                  <div className="flex-1">
-                    <div className="text-base mb-2 text-white">{t("racesScreen.ended")}</div>
-                    <div className="mb-2">{t("racesScreen.initiatedBy", { name: race.pseudo })}</div>
-                  </div>
-                  <div className="flex-1 flex flex-col items-center justify-center">
-                    <div className="font-bold">
-                      {t("racesScreen.winner")} <br />{race.firstFinisher} !
-                    </div>
-                  </div>
-                  <div className="flex-1 flex flex-col items-end justify-center">
-                    <div>
-                      {t("racesScreen.cashprize")}<br />
-                      <span className="text-2xl font-bold tracking-wide">
-                        {race.cashprize}  $
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                {race.participants && race.participants.length > 0 && (
-                  <div className="mt-2 text-xs flex items-center">
-                    <span className="text-white/60 mr-2">{t("racesScreen.participants")}</span>
-                    <div className="w-full overflow-x-hidden">
-                      <MarqueeParticipants participants={race.participants} />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
+            // ) : (
+            //   <div
+            //     key={race.id}
+            //     className="relative bg-[#23312c] border border-[#3BE696] p-4 flex flex-col min-h-[120px] justify-between"
+            //   >
+            //     {/* Badge ID en haut à droite */}
+            //     {race.owner && (
+            //       <span className="absolute top-3 right-3 bg-black text-[#3BE696] px-2 py-1 text-xs font-semibold shadow-sm z-10">
+            //         #{race.id}
+            //       </span>
+            //     )}
+            //     <div className="flex">
+            //       <div className="flex-1">
+            //         <div className="text-base mb-2 text-white">{t("racesScreen.ended")}</div>
+            //         <div className="text-lg">{race.trackName}</div>
+            //         <div className="mb-2">{t("racesScreen.initiatedBy", { name: race.pseudo })}</div>
+            //       </div>
+            //       <div className="flex-1 flex flex-col items-center justify-center">
+            //         <div className="font-bold">
+            //           {t("racesScreen.winner")} <br />{race.firstFinisher} !
+            //         </div>
+            //       </div>
+            //       <div className="flex-1 flex flex-col items-end justify-center">
+            //         <div>
+            //           {t("racesScreen.cashprize")}<br />
+            //           <span className="text-2xl font-bold tracking-wide">
+            //             {race.cashprize}  $
+            //           </span>
+            //         </div>
+            //       </div>
+            //     </div>
+            //     {race.participants && race.participants.length > 0 && (
+            //       <div className="mt-2 text-xs flex items-center">
+            //         <span className="text-white/60 mr-2">{t("racesScreen.participants")}</span>
+            //         <div className="w-full overflow-x-hidden">
+            //           <MarqueeParticipants participants={race.participants} />
+            //         </div>
+            //       </div>
+            //     )}
+            //   </div>
+            // )
           )}
         </div>
       </div>

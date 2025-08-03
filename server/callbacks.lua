@@ -114,12 +114,11 @@ lib.callback.register('__sk_races:getRaces', function(source, data)
     local whereClause = (#filters > 0) and ("WHERE " .. table.concat(filters, " AND ")) or ""
 
     local sql = [[
-    SELECT r.*, u.pseudo
+    SELECT r.*, u.pseudo, t.name as trackName
     FROM skulrag_races_races r
     LEFT JOIN skulrag_races_users u ON r.identifier = u.identifier
-    ]] .. whereClause .. [[
-    ORDER BY r.date DESC
-    ]]
+    LEFT JOIN skulrag_races_tracks t ON r.trackId = t.id
+    ]] -- etc
 
     local bool, result = pcall(function()
         return MySQL.query.await(sql, params)
@@ -330,3 +329,53 @@ lib.callback.register('__sk_races:postUnregisterFromRace', function(source, data
         success = affectedRows > 0
     }
 end)
+
+lib.callback.register('__sk_races:getRaceHistory', function(source, cb)
+    local result = {}
+
+    -- Récupérer les courses depuis la table skulrag_races_history
+    local history = MySQL.query.await('SELECT * FROM skulrag_races_history ORDER BY date DESC')
+
+    for _, race in ipairs(history) do
+        -- Récupérer le nom de l'initiateur
+        local initiator = MySQL.query.await('SELECT pseudo FROM skulrag_races_users WHERE id = ?', {race.initiator})
+        local initiatorName = initiator[1] and initiator[1].pseudo or 'Inconnu'
+
+        -- Récupérer le nom du gagnant
+        local winner = MySQL.query.await('SELECT pseudo FROM skulrag_races_users WHERE id = ?', {race.winner})
+        local winnerName = winner[1] and winner[1].pseudo or 'Inconnu'
+
+        -- Récupérer les résultats des participants
+        local results = {}
+
+        if race.isFinished then
+            for _, participant in ipairs(race.finishers) do
+                local participantData = MySQL.query.await('SELECT pseudo FROM skulrag_races_users WHERE id = ?', {participant.identifier})
+                local participantName = participantData[1] and participantData[1].pseudo or 'Inconnu'
+
+                table.insert(results, {
+                    rank = participant.rank,
+                    pseudo = participantName,
+                    elapsed = participant.elapsed_time
+                })
+            end
+        end
+
+        -- Ajouter la course au résultat final
+        table.insert(result, {
+            id = race.raceId,
+            name = race.trackName,
+            date = race.date,
+            isFinished = race.isFinished,
+            isRunning = (race.isStarted and not race.isFinished),
+            isCanceled = race.isCanceled,
+            initiator = initiatorName,
+            winner = winnerName,
+            cashprize = race.cashprize,
+            results = results
+        })
+    end
+
+    cb(result)
+end)
+
