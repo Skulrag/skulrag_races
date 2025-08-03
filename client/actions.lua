@@ -88,6 +88,7 @@ RegisterNUICallback('__sk_races:getRacesHistory', function(data, cb)
     print('SK_RACES WAITING FOR LOADED PLAYER...')
     Citizen.Wait(3000)
   end
-  local result = lib.callback.await('__sk_races:getRacesHistory', false, data)
+  print('CALLING __sk_races:getRacesHistory server from Registered NUI')
+  local result = lib.callback.await('__sk_races:getRacesHistory', false)
   cb(result)
 end)

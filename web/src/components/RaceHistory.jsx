@@ -1,18 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { fetchNui } from "../utils/fetchNui.js";
 
 // utilities
 function getStatus(race) {
     if (race.isCanceled) return "canceled";
-    if (race.isFinished) return "finished";
-    if (race.isStarted && !race.isFinished) return "running";
+    else if (race.isFinished) return "finished";
+    else if (race.isRunning) return "running";
     return "";
-}
-
-function formatDate(ts) {
-    // Expect ts in milliseconds
-    const d = new Date(ts);
-    return d.toLocaleDateString() + " - " + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
 function formatTime(secs) {
@@ -22,19 +17,12 @@ function formatTime(secs) {
     return `${m}:${s.toFixed(2).toString().padStart(5, "0")}`;
 }
 
-function statusColor(status) {
-    if (status === "finished") return "bg-green-500";
-    if (status === "running") return "bg-orange-500 animate-pulse";
-    if (status === "canceled") return "bg-red-500";
-    return "bg-gray-400";
-}
-
 function statusIcon(status) {
     if (status === "finished")
-        // Cercle vert + check inside
+        // Cercle vert très pâle + check white
         return (
-            <svg viewBox="0 0 24 24" className="w-5 h-5 text-white">
-                <circle cx="12" cy="12" r="10" fill="white" opacity="0.15" />
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-[#3BE696]">
+                <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.15" />
                 <path
                     fill="none"
                     stroke="white"
@@ -48,35 +36,36 @@ function statusIcon(status) {
     if (status === "running")
         // Spinner
         return (
-            <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+            <svg className="animate-spin h-5 w-5 text-[#C57D19]" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
             </svg>
         );
     if (status === "canceled")
-        // Cercle rouge + croix
+        // Cercle rouge pâle + croix rouge
         return (
-            <svg viewBox="0 0 24 24" className="w-5 h-5 text-white">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-[#740000]">
+                <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.15" />
                 <line x1="7" y1="7" x2="17" y2="17"
-                    stroke="white" strokeWidth="3" strokeLinecap="round" />
+                    stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
                 <line x1="17" y1="7" x2="7" y2="17"
-                    stroke="white" strokeWidth="3" strokeLinecap="round" />
+                    stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
             </svg>
         );
-    return "";
+    return null;
 }
 
-export default function RaceHistory({ races }) {
+export default function RaceHistory() {
     // races: array of race objects fetched from your API
     const { t } = useTranslation();
     const [openIdx, setOpenIdx] = useState(null);
-    const [races, setRaces] = useState(null);
+    const [races, setRaces] = useState([]);
     const [loading, setLoading] = useState(false);
     const [delayedLoading, setDelayedLoading] = useState(false);
 
     function fetchRaces() {
         setLoading(true);
-        fetchNui('__sk_races:getRacesHistory', filters).then((races) => setRaces(races)).finally(() => setLoading(false));
+        fetchNui('__sk_races:getRacesHistory').then((races) => setRaces(races)).finally(() => setLoading(false));
     }
 
     useEffect(() => { fetchRaces(); }, []);
@@ -101,93 +90,85 @@ export default function RaceHistory({ races }) {
     }
 
     return (
-        <div className="w-full max-w-3xl mx-auto space-y-2 mt-5">
-            {races.length === 0 ? (
-                <div className="text-gray-400 text-center p-8">
-                    {t("history.empty", "Aucune course à afficher.")}
+        <div className="w-full min-h-screen flex flex-col items-center bg-black">
+            <div className="w-full md:w-3/4 max-w-4xl flex flex-col mt-5">
+                <div className="flex items-center justify-between mb-3">
+                    <span className="text-2xl font-bold text-white">{t("history.title", "Historique des courses")}</span>
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 text-sm" onClick={() => window.location.reload()}>
+                        {t("refresh", "Rafraîchir")}
+                    </button>
                 </div>
-            ) : races.map((race, idx) => {
-                const status = getStatus(race);
-                return (
-                    <div key={race.id} className="border rounded shadow bg-white">
-                        {/* Bandeau (header du collapse) */}
-                        <button
-                            className="w-full flex items-center p-3 text-lg gap-3 focus:outline-none"
-                            onClick={() => setOpenIdx(idx === openIdx ? null : idx)}
-                        >
-                            {/* Chevron */}
-                            <span
-                                className={`transition-transform duration-300 ${idx === openIdx ? "rotate-180" : ""
-                                    }`}
+                <div className="flex-1 overflow-y-auto overflow-hidden max-h-[65vh] space-y-2 pr-2">
+                    {loading ? (
+                        <div className="text-gray-400 text-center p-8 italic">{t("history.loading", "Chargement...")}</div>
+                    ) : races.length === 0 ? (
+                        <div className="text-gray-400 text-center p-8">{t("history.empty", "Aucune course à afficher.")}</div>
+                    ) : races.map((race, idx) => {
+                        const status = getStatus(race);
+                        const opened = openIdx === idx;
+                        return (
+                            <div
+                                key={race.id}
+                                className="mb-4 border-2 border-[#3BE696] bg-[#23312c]"
                             >
-                                ▼
-                            </span>
-                            {/* Nom */}
-                            <span className="flex-1 font-semibold">{race.name}</span>
-                            {/* Date */}
-                            <span className="text-sm text-gray-600 mr-3 min-w-[130px] text-right">
-                                {formatDate(race.date)}
-                            </span>
-                            {/* Badge statut */}
-                            <span
-                                className={`ml-4 inline-flex items-center justify-center w-7 h-7 rounded-full text-white font-bold shadow ${statusColor(status)
-                                    }`}
-                            >
-                                {statusIcon(status)}
-                            </span>
-                        </button>
-                        {/* Content (collapse) */}
-                        {openIdx === idx && (
-                            <div className="border-t px-5 pb-4 pt-3 bg-gray-50 animate-fadein">
-                                {/* Ligne infos initiateur/gagnant/cashprize */}
-                                <div className="flex flex-wrap items-center gap-x-8 gap-y-2 mb-4 text-sm">
-                                    <div>
-                                        <span className="text-gray-600">{t('history.initiator', 'Initiateur')}:</span>{" "}
-                                        <span className="font-medium">{race.pseudo ?? "-"}</span>
+                                <button
+                                    type="button"
+                                    className="w-full flex justify-between items-center px-4 py-3 bg-[#23312c] text-white focus:outline-none"
+                                    onClick={() => setOpenIdx(opened ? null : idx)}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span className="font-semibold">{race.name}</span>
+                                        <span className="text-xs ml-2">{race.date}</span>
+                                        <span className="text-xs ml-4">{race.initiator && `par ${race.initiator}`}</span>
                                     </div>
-                                    <div>
-                                        <span className="text-gray-600">{t('history.winner', 'Gagnant')}:</span>{" "}
-                                        <span className="font-medium">{race.firstFinisher ?? "-"}</span>
+                                    <div className="flex items-center gap-3">
+                                        {race.owner && (
+                                            <span className="bg-black text-[#3BE696] px-2 py-1 text-xs font-semibold shadow-sm z-10">
+                                                #{race.id}
+                                            </span>
+                                        )}
+                                        {statusIcon(status)}
+                                        <svg className={`w-5 h-5 transition-transform duration-300 ${opened ? "rotate-180" : ""}`} fill="none" stroke="white" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                        </svg>
                                     </div>
-                                    <div>
-                                        <span className="text-gray-600">{t('history.cashprize', 'Cashprize')}:</span>{" "}
-                                        <span className="font-medium">${race.cashprize ?? 0} $</span>
-                                    </div>
-                                </div>
-                                {/* Tableau participants */}
-                                <div>
-                                    <table className="w-full bg-white">
-                                        <thead>
-                                            <tr className="bg-gray-200 text-left text-sm">
-                                                <th className="w-14 py-1 px-2">{t('history.place', 'Place')}</th>
-                                                <th className="py-1 px-2">{t('history.pseudo', 'Pseudo')}</th>
-                                                <th className="py-1 px-2">{t('history.time', 'Temps')}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {(race.results || []).length === 0 ? (
-                                                <tr>
-                                                    <td colSpan={3} className="text-gray-400 italic py-2 text-center">
-                                                        {t('history.no_results', "Aucun résultat.")}
-                                                    </td>
+                                </button>
+                                {opened && (
+                                    <div className="px-4 pb-4 pt-2 bg-[#23312c] text-white">
+                                        {/* Contenu détaillé, exemple avec le tableau */}
+                                        <table className="w-full text-white">
+                                            <thead>
+                                                <tr className="bg-[#23312c] text-left text-sm text-white">
+                                                    <th className="w-14 py-1 px-2">Place</th>
+                                                    <th className="py-1 px-2">Pseudo</th>
+                                                    <th className="py-1 px-2">Temps</th>
                                                 </tr>
-                                            ) : (
-                                                race.results.map((r, i) => (
-                                                    <tr key={r.rank ?? i} className="border-t last:border-b">
-                                                        <td className="py-1 px-2">{r.rank}</td>
-                                                        <td className="py-1 px-2">{r.pseudo}</td>
-                                                        <td className="py-1 px-2">{formatTime(r.elapsed)}</td>
+                                            </thead>
+                                            <tbody>
+                                                {(race.results || []).length === 0 ? (
+                                                    <tr>
+                                                        <td colSpan={3} className="italic py-2 text-center text-white">
+                                                            Aucun résultat.
+                                                        </td>
                                                     </tr>
-                                                ))
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                                ) : (
+                                                    race.results.map((r, i) => (
+                                                        <tr key={r.rank ?? i} className="border-t border-[#3BE696]">
+                                                            <td className="py-1 px-2">{r.rank}</td>
+                                                            <td className="py-1 px-2">{r.pseudo}</td>
+                                                            <td className="py-1 px-2">{formatTime(r.elapsed)}</td>
+                                                        </tr>
+                                                    ))
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
-                );
-            })}
+                        );
+                    })}
+                </div>
+            </div>
         </div>
     );
 }

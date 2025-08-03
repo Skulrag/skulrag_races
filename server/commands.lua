@@ -113,7 +113,6 @@ lib.addCommand('sk_startRace', {
     local now = os.date("%Y-%m-%d") -- Aujourd'hui, "YYYY-MM-DD"
 
     if raceDay ~= now then
-        print('DATE DIFF')
         lib.notify({
             title = 'System',
             description = ("Tu ne peux démarrer cette course que le jour prévu (%s)."):format(raceDay),
@@ -164,6 +163,15 @@ lib.addCommand('sk_startRace', {
         if target then
             TriggerClientEvent("__sk_races:startRace", target.PlayerData.source, race)
         end
+    end
+
+    -- MAJ historique après démarrage
+    local ok, err = pcall(function()
+        MySQL.update.await('UPDATE skulrag_races_history SET isStarted = 1 WHERE raceId = ?',
+            {raceId})
+    end)
+    if not ok then
+        print("[HISTORY] Erreur MAJ course dans history :", err)
     end
 
     lib.notify({
@@ -232,6 +240,14 @@ lib.addCommand('sk_cancelRace', {
             description = "Course supprimée avec succès.",
             type = 'success'
         }, src)
+
+        -- Met à jour l’historique : annulation
+        local ok, err = pcall(function()
+            MySQL.update.await('UPDATE skulrag_races_history SET isCanceled = 1 WHERE raceId = ?', {raceId})
+        end)
+        if not ok then
+            print("[HISTORY] Erreur MAJ annulation historique :", err)
+        end
 
         -- Notifier tous les participants, si il y en a
         local registeredPlayers = {}

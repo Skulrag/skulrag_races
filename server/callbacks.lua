@@ -78,22 +78,61 @@ end)
 lib.callback.register('__sk_races:postCreateRace', function(source, data)
     local _source = source
     local player = exports.qbx_core:GetPlayer(_source)
-    local id, message = pcall(function()
+    if not player then
+        return { ['success'] = false, ['error'] = 'Player not found' }
+    end
+
+    -- 1) Insérer dans la table principale
+    local ok, raceInsertIdOrError = pcall(function()
         return MySQL.insert.await(
             'INSERT INTO `skulrag_races_races` (identifier, trackId, type, date, laps, cashprize, entries) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            {player.PlayerData.citizenid, data.trackId, data.type, isoToMySQLDate(data.date), data.laps, data.cashprize,
-             data.entries})
+            {player.PlayerData.citizenid, data.trackId, data.type, isoToMySQLDate(data.date), data.laps, data.cashprize, data.entries}
+        )
     end)
-    print(message)
-    if not id then
-        return {
-            ['success'] = false
-        };
+    if not ok then
+        print('[RACE] Erreur insertion races:', raceInsertIdOrError)
+        return { ['success'] = false }
     end
-    return {
-        ['success'] = true
-    };
+    local _raceId = raceInsertIdOrError
+
+    -- **2) Chercher le trackName depuis la DB** (par trackId)
+    local trackName = nil
+    local okTrack, trackResult = pcall(function()
+        return MySQL.single.await('SELECT name FROM skulrag_races_tracks WHERE id = ?', {data.trackId})
+    end)
+    if okTrack and trackResult and trackResult.name then
+        trackName = trackResult.name
+    else
+        trackName = nil -- En cas d'erreur ou absence, on laisse le champ à NULL
+    end
+
+    -- **3) Insérer dans history avec ce trackName**
+    local okHist, histInsertIdOrError = pcall(function()
+        return MySQL.insert.await([[
+            INSERT INTO `skulrag_races_history`
+                (cashprize, trackId, raceId, finishers, date, isFinished, isCanceled, isStarted, initiator, trackName)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ]], {
+            data.cashprize,
+            data.trackId,
+            _raceId,
+            json.encode({}),
+            isoToMySQLDate(data.date),
+            0,
+            0,
+            0,
+            player.PlayerData.citizenid,
+            trackName
+        })
+    end)
+    if not okHist then
+        print('[RACE] Erreur insertion history:', histInsertIdOrError)
+        return { ['success'] = false, ['warning'] = 'Race OK, history failed' }
+    end
+
+    return { ['success'] = true, ['raceId'] = _raceId, ['historyId'] = histInsertIdOrError }
 end)
+
 
 lib.callback.register('__sk_races:getRaces', function(source, data)
     local _source = source
@@ -118,7 +157,13 @@ lib.callback.register('__sk_races:getRaces', function(source, data)
     FROM skulrag_races_races r
     LEFT JOIN skulrag_races_users u ON r.identifier = u.identifier
     LEFT JOIN skulrag_races_tracks t ON r.trackId = t.id
-    ]] -- etc
+    WHERE NOT EXISTS (
+        SELECT 1 FROM skulrag_races_history h
+        WHERE h.raceId = r.id
+          AND (h.isFinished = 1 OR h.isCanceled = 1 OR h.isStarted = 1)
+    )
+    ]]
+
 
     local bool, result = pcall(function()
         return MySQL.query.await(sql, params)
@@ -143,8 +188,6 @@ lib.callback.register('__sk_races:getRaces', function(source, data)
         end
         row.isOnline = isOnline
 
-        print('isOnline', row.isOnline)
-        print('row.id', row.id)
         -- registeredPlayers
         local registeredPlayers = {}
         if row.registeredPlayers and row.registeredPlayers ~= "" then
@@ -330,34 +373,43 @@ lib.callback.register('__sk_races:postUnregisterFromRace', function(source, data
     }
 end)
 
-lib.callback.register('__sk_races:getRaceHistory', function(source, cb)
+lib.callback.register('__sk_races:getRacesHistory', function(source, cb)
+    local _source = source
+    local player = exports.qbx_core:GetPlayer(_source)
+    if not player then
+        return {
+            success = false,
+            error = "No player."
+        }
+    end
     local result = {}
 
     -- Récupérer les courses depuis la table skulrag_races_history
     local history = MySQL.query.await('SELECT * FROM skulrag_races_history ORDER BY date DESC')
 
+    print(json.encode(history))
+
     for _, race in ipairs(history) do
         -- Récupérer le nom de l'initiateur
-        local initiator = MySQL.query.await('SELECT pseudo FROM skulrag_races_users WHERE id = ?', {race.initiator})
-        local initiatorName = initiator[1] and initiator[1].pseudo or 'Inconnu'
-
-        -- Récupérer le nom du gagnant
-        local winner = MySQL.query.await('SELECT pseudo FROM skulrag_races_users WHERE id = ?', {race.winner})
-        local winnerName = winner[1] and winner[1].pseudo or 'Inconnu'
+        local initiator = MySQL.scalar.await('SELECT pseudo FROM skulrag_races_users WHERE identifier = ?', {race.initiator})
+        local winner = nil
 
         -- Récupérer les résultats des participants
         local results = {}
 
         if race.isFinished then
-            for _, participant in ipairs(race.finishers) do
-                local participantData = MySQL.query.await('SELECT pseudo FROM skulrag_races_users WHERE id = ?', {participant.identifier})
-                local participantName = participantData[1] and participantData[1].pseudo or 'Inconnu'
+            for _, participant in ipairs(json.decode(race.finishers)) do
+                local participantPseudo = MySQL.scalar.await('SELECT pseudo FROM skulrag_races_users WHERE identifier = ?', {participant.identifier})
 
                 table.insert(results, {
                     rank = participant.rank,
-                    pseudo = participantName,
-                    elapsed = participant.elapsed_time
+                    pseudo = participantPseudo,
+                    elapsed = participant.elapsedTime
                 })
+
+                if participant.rank == 1 then
+                    winner = participantPseudo
+                end
             end
         end
 
@@ -365,17 +417,20 @@ lib.callback.register('__sk_races:getRaceHistory', function(source, cb)
         table.insert(result, {
             id = race.raceId,
             name = race.trackName,
-            date = race.date,
+            date = ToFrDate(race.date),
             isFinished = race.isFinished,
-            isRunning = (race.isStarted and not race.isFinished),
+            isRunning = race.isStarted,
             isCanceled = race.isCanceled,
-            initiator = initiatorName,
-            winner = winnerName,
+            initiator = initiator,
+            winner = winner,
             cashprize = race.cashprize,
+            owner = race.initiator == player.PlayerData.citizenid,
             results = results
         })
+        print(json.encode(result))
+
     end
 
-    cb(result)
+    return result
 end)
 

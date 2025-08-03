@@ -12,7 +12,6 @@ end
 
 RegisterNetEvent("__sk_races:postPlayerFinishedRace")
 AddEventHandler("__sk_races:postPlayerFinishedRace", function(raceId, elapsed)
-    print('temps de la course en s :', elapsed)
     local src = source
     local Player = exports.qbx_core:GetPlayer(src)
     if not Player then
@@ -21,47 +20,49 @@ AddEventHandler("__sk_races:postPlayerFinishedRace", function(raceId, elapsed)
     end
     local citizenid = Player.PlayerData.citizenid
 
-    MySQL.update([[UPDATE skulrag_races_races
-        SET finishedPlayers = JSON_ARRAY_APPEND(finishedPlayers, '$', ?)
-        WHERE id = ? AND JSON_CONTAINS(finishedPlayers, JSON_QUOTE(?), '$') = 0]], {citizenid, raceId, citizenid},
-        function(_)
-            -- Lecture de la liste des inscrits et des finishers :
-            MySQL.query('SELECT finishedPlayers, registeredPlayers FROM skulrag_races_races WHERE id = ?', {raceId},
-                function(results)
-                    if not results or not results[1] then
-                        TriggerClientEvent("__sk_races:positionNotification", src, false)
-                        return
-                    end
-                    local finished = results[1].finishedPlayers or '[]'
-                    local registered = results[1].registeredPlayers or '[]'
-                    local finishedTable = json.decode(finished)
-                    local registeredTable = json.decode(registered)
+    -- Ajout atomique du finisher et winner
+    local affected = MySQL.update.await([[
+        UPDATE skulrag_races_history
+        SET
+            finishers = JSON_ARRAY_APPEND(finishers, '$', JSON_OBJECT('identifier', ?, 'rank', JSON_LENGTH(finishers) + 1, 'elapsedTime', ?))
+        WHERE raceId = ?
+        AND JSON_SEARCH(finishers, 'one', ?) IS NULL
+    ]], {citizenid, elapsed, raceId, citizenid})
 
-                    -- Calcul de la position d'arrivée
-                    local pos = nil
-                    for i, v in ipairs(finishedTable) do
-                        if v == citizenid then
-                            pos = i
-                            break
-                        end
-                    end
-                    if pos then
-                        TriggerClientEvent("__sk_races:positionNotification", src, pos)
-                        if pos == 1 then
-                            MySQL.update("UPDATE skulrag_races_races SET firstFinisher = ? WHERE id = ?",
-                                {citizenid, raceId})
-                        end
-                    else
-                        TriggerClientEvent("__sk_races:positionNotification", src, false)
-                    end
+    if affected and affected > 0 then
+        print("Finisher ajouté atomiquement")
+    else
+        print("Le joueur figurait déjà dans les finishers (double arrivée ?)")
+    end
 
-                    -- Si tout le monde a fini, on marque la course terminée
-                    if #finishedTable > 0 and #registeredTable > 0 and #finishedTable == #registeredTable then
-                        MySQL.update("UPDATE skulrag_races_races SET isFinished = 1 WHERE id = ?", {raceId})
-                        -- Ici tu peux, si tu le veux, broadcast à tous
-                        TriggerClientEvent("__sk_races:raceFinished", -1)
-                    end
-                end)
-        end)
+    -- Vérification de la fin de course
+    -- On récupère finishers + registeredPlayers d'un coup
+    local res = MySQL.single.await([[
+        SELECT 
+            JSON_LENGTH(history.finishers) as nFinishers, 
+            JSON_LENGTH(races.registeredPlayers) as nRegistered, 
+            races.registeredPlayers
+        FROM skulrag_races_history history
+        JOIN skulrag_races_races races ON races.id = history.raceId
+        WHERE history.raceId = ?
+    ]], {raceId})
+
+    if res and res.nFinishers and res.nRegistered and res.nFinishers == res.nRegistered then
+        -- Flag de course terminée
+        MySQL.update.await("UPDATE skulrag_races_history SET isFinished = 1 WHERE raceId = ?", {raceId})
+
+        -- Notifier TOUS les inscrits (tous les joueurs de registeredPlayers)
+        local registeredList = json.decode(res.registeredPlayers)
+        if registeredList then
+            for _, citizenId in ipairs(registeredList) do
+                -- Retrouve le src du citizenid si tu stockes les joueurs connectés :
+                local targetSrc = exports.qbx_core:GetPlayerByCitizenId(citizenId)
+                if targetSrc then
+                    TriggerClientEvent("__sk_races:raceFinished", targetSrc)
+                end
+            end
+        end
+    end
 end)
+
 
