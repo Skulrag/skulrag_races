@@ -96,6 +96,9 @@ function setRaceCheckpoint(idx, laps, totalLaps)
 end
 
 function raceMainLoop(raceId)
+    local startTime = GetGameTimer()
+    local finishTime = nil
+
     while true do
         local ped = PlayerPedId()
         local pos = GetEntityCoords(ped)
@@ -145,9 +148,11 @@ function raceMainLoop(raceId)
     SetGpsMultiRouteRender(false)
     gpsRouteActive = false
 
+    finishTime = GetGameTimer()
+    local elapsed = (finishTime - startTime) / 1000 -- ms en secondes
     DrawMissionText("~g~FINISH!", 3000)
     PlaySoundFrontend(-1, "RACE_PLACED", "HUD_AWARDS", true)
-    TriggerServerEvent('__sk_races:postPlayerFinishedRace', raceId)
+    TriggerServerEvent('__sk_races:postPlayerFinishedRace', raceId, elapsed)
 end
 
 -- Écoute de l'événement d'annulation de la course
