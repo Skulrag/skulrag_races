@@ -42,6 +42,14 @@ function getDateStr(date)
     return string.format("%04d-%02d-%02d", d.year, d.month, d.day)
 end
 
+function getDatePartsFromTimestampMs(ts)
+    if not ts then return nil end
+    -- Retirer le ".0" éventuel au cas où ce soit une string
+    ts = tonumber(ts)
+    if not ts then return nil end
+    local s = math.floor(ts / 1000)
+    return os.date("*t", s).year, os.date("*t", s).month, os.date("*t", s).day
+end
 
 
 

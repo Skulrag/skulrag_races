@@ -49,6 +49,7 @@ RegisterNUICallback('__sk_races:postCreateRace', function(data, cb)
     print('SK_RACES WAITING FOR LOADED PLAYER...')
     Citizen.Wait(3000)
   end
+  print('__sk_races:postCreateRace NUI CALLBACK')
   local result = lib.callback.await('__sk_races:postCreateRace', false, data)
   cb(result)
 end)

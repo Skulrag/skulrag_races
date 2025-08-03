@@ -84,6 +84,7 @@ lib.callback.register('__sk_races:postCreateRace', function(source, data)
             {player.PlayerData.citizenid, data.trackId, data.type, isoToMySQLDate(data.date), data.laps, data.cashprize,
              data.entries})
     end)
+    print(message)
     if not id then
         return {
             ['success'] = false
@@ -124,21 +125,27 @@ lib.callback.register('__sk_races:getRaces', function(source, data)
         return MySQL.query.await(sql, params)
     end)
 
-    -- Ajoute "isOnline" à chaque course selon la date
-    local currentTime = os.time()
-    for i, row in ipairs(result) do
-        -- isOnline
+    local now = os.date("*t") -- {year, month, day}
+    for _, row in ipairs(result) do
+        -- Check si le joueur courant est l'owner
+        if player.PlayerData.citizenid == row.identifier then
+            row.owner = true
+        else
+            row.owner = false
+        end
+        -- isOnline basé sur le jour
         local isOnline = false
-        local timestamp
-        if row.date then
-            local num = tonumber(row.date)
-            if num then
-                timestamp = math.floor(num / 1000)
-                isOnline = timestamp > currentTime
+        local y, m, d = getDatePartsFromTimestampMs(row.date)
+        if y and m and d then
+            if (y > now.year) or (y == now.year and m > now.month) or
+                (y == now.year and m == now.month and d >= now.day) then
+                isOnline = true
             end
         end
         row.isOnline = isOnline
 
+        print('isOnline', row.isOnline)
+        print('row.id', row.id)
         -- registeredPlayers
         local registeredPlayers = {}
         if row.registeredPlayers and row.registeredPlayers ~= "" then
@@ -160,6 +167,45 @@ lib.callback.register('__sk_races:getRaces', function(source, data)
 
         -- entriesLeft
         row.entriesLeft = row.entries - #registeredPlayers
+
+        -------- Ajout récupération des participants pour les courses terminées -------
+        -- Vérifie si la course est finie : adapte ce test selon ta logique
+        if row.isFinished == true or row.isFinished == 1 then
+            row.participants = {}
+            if #registeredPlayers > 0 then
+                local placeholders = {}
+                for i = 1, #registeredPlayers do
+                    table.insert(placeholders, "?")
+                end
+                local query = string.format([[
+            SELECT pseudo FROM skulrag_races_users WHERE identifier IN (%s)
+        ]], table.concat(placeholders, ","))
+
+                local _, participantsResult = pcall(function()
+                    return MySQL.query.await(query, registeredPlayers)
+                end)
+                if participantsResult then
+                    local pseudos = {}
+                    for _, participant in ipairs(participantsResult) do
+                        table.insert(pseudos, participant.pseudo)
+                    end
+                    row.participants = pseudos
+                end
+            end
+        end
+
+        -- Remplacement du firstFinisher IDENTIFIER par le PSEUDO
+        if row.firstFinisher then
+            local query = "SELECT pseudo FROM skulrag_races_users WHERE identifier = ? LIMIT 1"
+            local _, res = pcall(function()
+                return MySQL.query.await(query, {row.firstFinisher})
+            end)
+            if res and res[1] and res[1].pseudo then
+                row.firstFinisher = res[1].pseudo
+            else
+                row.firstFinisher = nil -- ou '' si tu préfères
+            end
+        end
     end
 
     return result
@@ -277,10 +323,8 @@ lib.callback.register('__sk_races:postUnregisterFromRace', function(source, data
     end
 
     -- Mise à jour de la BDD
-    local affectedRows = MySQL.update.await(
-        'UPDATE skulrag_races_races SET registeredPlayers = ? WHERE id = ?',
-        {json.encode(currentPlayers), raceId}
-    )
+    local affectedRows = MySQL.update.await('UPDATE skulrag_races_races SET registeredPlayers = ? WHERE id = ?',
+        {json.encode(currentPlayers), raceId})
 
     return {
         success = affectedRows > 0

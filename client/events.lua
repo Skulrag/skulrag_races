@@ -33,15 +33,21 @@ RegisterNetEvent("__sk_races:startRace", function(race)
 
     StartGpsMultiRoute(47, true, true)
 
-    for lap = 1, totalLaps do
+    if trackType == 'laps' then
+        for lap = 1, totalLaps do
+            for i, cp in ipairs(checkpoints) do
+                AddPointToGpsMultiRoute(vector3(cp.x, cp.y, cp.z))
+            end
+        end
+
+        -- Ajout du checkpoint 1 EN PLUS à la toute fin (arrivée, même si déjà dans la boucle)
+        if #checkpoints > 0 then
+            AddPointToGpsMultiRoute(vector3(checkpoints[1].x, checkpoints[1].y, checkpoints[1].z))
+        end
+    elseif trackType == 'sprint' then
         for i, cp in ipairs(checkpoints) do
             AddPointToGpsMultiRoute(vector3(cp.x, cp.y, cp.z))
         end
-    end
-
-    -- Ajout du checkpoint 1 EN PLUS à la toute fin (arrivée, même si déjà dans la boucle)
-    if #checkpoints > 0 then
-        AddPointToGpsMultiRoute(vector3(checkpoints[1].x, checkpoints[1].y, checkpoints[1].z))
     end
 
     Wait(100)
@@ -52,7 +58,9 @@ RegisterNetEvent("__sk_races:startRace", function(race)
     setRaceCheckpoint(currentCheckpoint, laps, totalLaps)
 
     -- Lance le handler principal
-    Citizen.CreateThread(raceMainLoop)
+    Citizen.CreateThread(function()
+        raceMainLoop(race.id)
+    end)
 end)
 
 function DrawMissionText(text, duration)
@@ -87,7 +95,7 @@ function setRaceCheckpoint(idx, laps, totalLaps)
     SetBlipColour(checkpointBlip, 2)
 end
 
-function raceMainLoop()
+function raceMainLoop(raceId)
     while true do
         local ped = PlayerPedId()
         local pos = GetEntityCoords(ped)
@@ -139,6 +147,7 @@ function raceMainLoop()
 
     DrawMissionText("~g~FINISH!", 3000)
     PlaySoundFrontend(-1, "RACE_PLACED", "HUD_AWARDS", true)
+    TriggerServerEvent('__sk_races:postPlayerFinishedRace', raceId)
 end
 
 -- Écoute de l'événement d'annulation de la course
@@ -146,5 +155,30 @@ RegisterNetEvent("__sk_races:raceCanceled", function(raceDate)
     local message = "Course du " .. raceDate .. " est annulée."
     -- Afficher la notification pendant 20 secondes
     exports.qbx_core:Notify(message, 'error', 20000)
+end)
+
+RegisterNetEvent("__sk_races:raceFinished", function()
+    local message = "Course terminée."
+    -- Afficher la notification pendant 20 secondes
+    exports.qbx_core:Notify(message, 'success', 10000)
+end)
+
+RegisterNetEvent("races:positionNotification")
+AddEventHandler("races:positionNotification", function(position)
+    if not position then
+        exports.qbx_core:Notify("Tu es déjà enregistré !", "error", 5000)
+    else
+        local function getFrenchSuffix(pos)
+            if pos == 1 then
+                return "er"
+            else
+                return "ème"
+            end
+        end
+        -- puis dans la notif :
+        exports.qbx_core:Notify(("Tu franchis la ligne d’arrivée en %d%s position !"):format(position,
+            getFrenchSuffix(position)), "success", 7000)
+
+    end
 end)
 
