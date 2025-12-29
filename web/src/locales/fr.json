@@ -29,7 +29,7 @@
   "ended": "Course terminée !",
   "entriesLeft": "Places restantes : {{count}}",
   "start": "Démarrer la course",
-  "cancel": "Annuler la participation",
+  "cancelRegister": "Annuler la participation",
   "register": "S’inscrire !",
   "initiatedBy": "Organisée par : {{name}}",
   "winner": "Le gagnant est",
@@ -40,7 +40,13 @@
   "goToTracks": "Accéder aux circuits !",
   "goToRaces": "Déjà ici !",
   "registering": "Inscription à la course {{raceId}}",
-  "canceling": "Annulation pour la course {{raceId}}"
+  "canceling": "Annulation pour la course {{raceId}}",
+
+  "delete": "Supprimer la course",
+  "confirmDeleteTitle": "Supprimer la course ?",
+  "deleting": "Suppression…",
+  "confirm": "Confirmer",
+  "cancel": "Annuler"
 },
 "pseudoForm": {
   "title": "Courses",
@@ -50,9 +56,9 @@
   "confirm": "Valider"
 },
 "helpScreen": {
-  "instructions": "Sur la page Circuits, tu peux voir l’ID de chaque circuit.\n\nLes circuits non terminés sont en orange.\nCeux qui sont terminés sont en vert.\n\nCliquer sur un circuit non terminé ouvre une fenêtre pour le supprimer ou le confirmer.\n\nCliquer sur \"Concourir !\" ouvre un formulaire pour créer une course basée sur ton circuit.\nTu peux choisir une date, une heure de départ.\nTu peux définir un nombre max de participants et prévoir 4 cashprizes : un pour chaque membre du podium et le quatrième sera partagé entre tous les autres participants.\nLes cashprizes ne te seront pas débités, tu devras les distribuer par toi-même.\n\nUne fois un circuit visible dans la liste (en orange), tu peux ajouter autant de checkpoints que tu veux (parfois limité par l’application, cela sera précisé si besoin). Utilise simplement :\n",
+  "instructions": "Sur la page Circuits, tu peux voir l’ID de chaque circuit.\n\nUne fois un circuit visible dans la liste, tu peux ajouter autant de checkpoints que tu veux (parfois limité par l’application, cela sera précisé si besoin). Utilise simplement la commande :\n",
   "addCheckpointInfo": "pour ajouter un nouveau checkpoint depuis ta position actuelle.",
-  "instructions2": "Si le type de course est \"Sprint\" :\nLe dernier checkpoint ajouté avant de \"Confirmer\" sera la ligne d’arrivée.\n\nSi le type est \"Boucles\" :\nLe dernier checkpoint que tu ajoutes renverra les participants, une fois franchi, au premier checkpoint du circuit (ligne de départ).\n"
+  "instructions2": "Si le type de course est \"Sprint\" :\nLe dernier checkpoint ajouté avant de \"Confirmer\" sera la ligne d’arrivée.\n\nSi le type est \"Boucles\" :\nLe dernier checkpoint que tu ajoutes, une fois franchi, renverra les participants au premier checkpoint du circuit (ligne de départ).\n\nCliquer sur \"Concourir !\" ouvre un formulaire pour créer une course basée sur ton circuit.\nTu peux choisir une date, une heure de départ.\nTu peux définir un nombre max de participants et prévoir 4 cashprizes : un pour chaque membre du podium et le quatrième sera partagé entre tous les autres participants.\nLes cashprizes ne te seront pas débités, tu devras les distribuer par toi-même.\n"
 },
 "createTrackScreen": {
   "trackNamePlaceholder": "Taper le nom du circuit...",

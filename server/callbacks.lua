@@ -392,8 +392,6 @@ lib.callback.register('__sk_races:getRacesHistory', function(source, cb)
     -- Récupérer les courses depuis la table skulrag_races_history
     local history = MySQL.query.await('SELECT * FROM skulrag_races_history ORDER BY date DESC')
 
-    print(json.encode(history))
-
     for _, race in ipairs(history) do
         -- Récupérer le nom de l'initiateur
         local initiator = MySQL.scalar.await('SELECT pseudo FROM skulrag_races_users WHERE identifier = ?',
@@ -434,7 +432,6 @@ lib.callback.register('__sk_races:getRacesHistory', function(source, cb)
             owner = race.initiator == player.PlayerData.citizenid,
             results = results
         })
-        print(json.encode(result))
 
     end
 
@@ -530,7 +527,6 @@ end)
 lib.callback.register('__sk_races:postStartRace', function(src, data)
     local player = exports.qbx_core:GetPlayer(src)
     if not player then
-        print("NOT PLAYER")
         lib.notify({
             title = 'System',
             description = "Tu n'es pas connecté.",

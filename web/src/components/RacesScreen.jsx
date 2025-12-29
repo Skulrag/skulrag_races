@@ -14,6 +14,7 @@ export default function RacesScreen() {
   const [delayedLoading, setDelayedLoading] = useState(false);
   const [confirmStartRace, setConfirmStartRace] = useState(null);
   const [startLoadingId, setStartLoadingId] = useState(null);
+  const [confirmCancelRace, setConfirmCancelRace] = useState(null); // null ou race à annuler
 
 
   const toggle = (k) => setFilters((f) => ({ ...f, [k]: !f[k] }));
@@ -109,12 +110,13 @@ export default function RacesScreen() {
                     </span>
                   </div>
                 </div>
+                {/* ...dans ta map des courses, dans la card de chaque course... */}
                 <div className="flex-1 flex items-end justify-end">
-                  <div className="flex flex-col gap-y-2 items-end w-full">
-                    {/* Register Button */}
+                  <div className="flex flex-row gap-x-2 items-end">
+                    {/* REGISTER */}
                     {!race.isRegistered && race.entriesLeft > 0 && (
                       <button
-                        className="bg-[#202122] text-white px-6 py-2 self-end transition-transform duration-150 hover:scale-95"
+                        className="bg-[#202122] text-white px-6 py-2 transition-transform duration-150 hover:scale-95"
                         onClick={() => handleRegister(race.id)}
                       >
                         {registerLoadingId === race.id ? (
@@ -128,10 +130,10 @@ export default function RacesScreen() {
                       </button>
                     )}
 
-                    {/* Cancel Button */}
+                    {/* CANCEL */}
                     {race.isRegistered && (
                       <button
-                        className="bg-[#740000] text-white px-6 py-2 self-end transition-transform duration-150 hover:scale-95"
+                        className="bg-[#740000] text-white px-6 py-2 transition-transform duration-150 hover:scale-95"
                         onClick={() => handleCancel(race.id)}
                       >
                         {registerLoadingId === race.id ? (
@@ -140,23 +142,41 @@ export default function RacesScreen() {
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                           </svg>
                         ) : (
-                          t("racesScreen.cancel")
+                          t("racesScreen.cancelRegister")
                         )}
                       </button>
                     )}
 
-                    {/* Start Button (owner only) */}
+                    {/* START (OWNER SEULEMENT) */}
                     {race.owner && (
                       <button
-                        className="bg-[#257417] hover:bg-[#115c20] text-white px-6 py-2 rounded transition-all duration-150 mt-2 self-end"
+                        className="bg-[#257417] hover:bg-[#115c20] text-white px-6 py-2 rounded transition-all duration-150"
                         onClick={() => setConfirmStartRace(race.id)}
                         disabled={startLoadingId === race.id}
                       >
                         {t("racesScreen.start")}
                       </button>
                     )}
+
+                    {/* Delete (réservé à l'owner, ou à adapter) */}
+                    {race.owner && (
+                      <button
+                        className="p-1 bg-transparent transition transition-transform duration-150 hover:scale-95"
+                        title={t("racesScreen.delete")}
+                        onClick={() => setConfirmCancelRace(race.id)}
+                        type="button"
+                      >
+                        <svg
+                          className="w-5 h-5 text-[#840D0D] hover:text-[#F61E1E]"
+                          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M9 7V4h6v3M10 11v6m4-6v6M4 7h16l-1.5 14h-13L4 7z" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
+
 
               </div>
             </div>
@@ -192,7 +212,24 @@ export default function RacesScreen() {
           </div>
         </div>
       )}
-
+      {confirmCancelRace && (
+                          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+                              <div className="bg-[#1d2823] rounded-lg p-6 w-full max-w-md shadow-lg text-white border border-[#3BE696]">
+                                  <div className="font-bold text-lg mb-2">{t("races.cancelTitle", "Arrêter la course ?")}</div>
+                                  <div className="mb-6">{t("races.cancelConfirm", "Es-tu sûr de vouloir arrêter la course ?")}</div>
+                                  <div className="flex justify-end gap-3">
+                                      <button
+                                          className="px-4 py-1 rounded bg-gray-500 text-white hover:bg-gray-600"
+                                          onClick={() => setConfirmCancelRace(null)}
+                                      >{t("cancel", "Annuler")}</button>
+                                      <button
+                                          className="px-4 py-1 rounded bg-[#C05708] text-white hover:bg-[#944205]"
+                                          onClick={() => fetchNui("__sk_races:postCancelRace", confirmCancelRace).then(() => setConfirmCancelRace(null)).finally(() => fetchRaces())}
+                                      >{t("races.cancelNow", "Oui, arrêter")}</button>
+                                  </div>
+                              </div>
+                          </div>
+                      )}
     </div>
   );
 }

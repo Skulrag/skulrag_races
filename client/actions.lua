@@ -78,7 +78,6 @@ RegisterNUICallback('__sk_races:getRacesHistory', function(data, cb)
   while not playerLoaded do
     Citizen.Wait(3000)
   end
-  print('CALLING __sk_races:getRacesHistory server from Registered NUI')
   local result = lib.callback.await('__sk_races:getRacesHistory', false)
   cb(result)
 end)
@@ -96,5 +95,13 @@ RegisterNUICallback('__sk_races:postStartRace', function(data, cb)
     Citizen.Wait(3000)
   end
   local result = lib.callback.await('__sk_races:postStartRace', false, data)
+  cb(result)
+end)
+
+RegisterNUICallback('__sk_races:deleteRace', function(data, cb)
+  while not playerLoaded do
+    Citizen.Wait(3000)
+  end
+  local result = lib.callback.await('__sk_races:deleteRace', false, data)
   cb(result)
 end)
