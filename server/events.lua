@@ -1,15 +1,3 @@
-local function checkpointToVector(checkpoint)
-    if checkpoint.x and checkpoint.y and checkpoint.z then
-        return vector3(checkpoint.x, checkpoint.y, checkpoint.z)
-    elseif #checkpoint == 3 then
-        return vector3(checkpoint[1], checkpoint[2], checkpoint[3])
-    elseif type(checkpoint) == "vector3" then
-        return checkpoint
-    else
-        error("Format de checkpoint inconnu: " .. tostring(checkpoint))
-    end
-end
-
 RegisterNetEvent("__sk_races:postPlayerFinishedRace")
 AddEventHandler("__sk_races:postPlayerFinishedRace", function(raceId, elapsed)
     local src = source
@@ -50,7 +38,7 @@ AddEventHandler("__sk_races:postPlayerFinishedRace", function(raceId, elapsed)
     if res and res.nFinishers and res.nRegistered and res.nFinishers == res.nRegistered then
         -- Flag de course terminée
         MySQL.update.await("UPDATE skulrag_races_history SET isFinished = 1 WHERE raceId = ?", {raceId})
-
+        MySQL.update.await('DELETE FROM skulrag_races_races WHERE id = ?', {raceId})
         -- Notifier TOUS les inscrits (tous les joueurs de registeredPlayers)
         local registeredList = json.decode(res.registeredPlayers)
         if registeredList then

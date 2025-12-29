@@ -79,19 +79,24 @@ lib.callback.register('__sk_races:postCreateRace', function(source, data)
     local _source = source
     local player = exports.qbx_core:GetPlayer(_source)
     if not player then
-        return { ['success'] = false, ['error'] = 'Player not found' }
+        return {
+            ['success'] = false,
+            ['error'] = 'Player not found'
+        }
     end
 
     -- 1) Insérer dans la table principale
     local ok, raceInsertIdOrError = pcall(function()
         return MySQL.insert.await(
             'INSERT INTO `skulrag_races_races` (identifier, trackId, type, date, laps, cashprize, entries) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            {player.PlayerData.citizenid, data.trackId, data.type, isoToMySQLDate(data.date), data.laps, data.cashprize, data.entries}
-        )
+            {player.PlayerData.citizenid, data.trackId, data.type, isoToMySQLDate(data.date), data.laps, data.cashprize,
+             data.entries})
     end)
     if not ok then
         print('[RACE] Erreur insertion races:', raceInsertIdOrError)
-        return { ['success'] = false }
+        return {
+            ['success'] = false
+        }
     end
     local _raceId = raceInsertIdOrError
 
@@ -112,27 +117,23 @@ lib.callback.register('__sk_races:postCreateRace', function(source, data)
             INSERT INTO `skulrag_races_history`
                 (cashprize, trackId, raceId, finishers, date, isFinished, isCanceled, isStarted, initiator, trackName)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ]], {
-            data.cashprize,
-            data.trackId,
-            _raceId,
-            json.encode({}),
-            isoToMySQLDate(data.date),
-            0,
-            0,
-            0,
-            player.PlayerData.citizenid,
-            trackName
-        })
+        ]], {data.cashprize, data.trackId, _raceId, json.encode({}), isoToMySQLDate(data.date), 0, 0, 0,
+             player.PlayerData.citizenid, trackName})
     end)
     if not okHist then
         print('[RACE] Erreur insertion history:', histInsertIdOrError)
-        return { ['success'] = false, ['warning'] = 'Race OK, history failed' }
+        return {
+            ['success'] = false,
+            ['warning'] = 'Race OK, history failed'
+        }
     end
 
-    return { ['success'] = true, ['raceId'] = _raceId, ['historyId'] = histInsertIdOrError }
+    return {
+        ['success'] = true,
+        ['raceId'] = _raceId,
+        ['historyId'] = histInsertIdOrError
+    }
 end)
-
 
 lib.callback.register('__sk_races:getRaces', function(source, data)
     local _source = source
@@ -141,29 +142,33 @@ lib.callback.register('__sk_races:getRaces', function(source, data)
     local filters = {}
     local params = {}
 
-    if data.finished then
-        table.insert(filters, '`r`.`date` < NOW()')
-    end
-
     if data.owned then
         table.insert(filters, '`r`.`identifier` = ?')
         table.insert(params, player.PlayerData.citizenid)
     end
 
-    local whereClause = (#filters > 0) and ("WHERE " .. table.concat(filters, " AND ")) or ""
+    local baseFilter = [[
+NOT EXISTS (
+    SELECT 1 FROM skulrag_races_history h
+    WHERE h.raceId = r.id
+      AND (h.isFinished = 1 OR h.isCanceled = 1 OR h.isStarted = 1)
+)
+]]
 
-    local sql = [[
+    local allFilters = {baseFilter}
+    for _, f in ipairs(filters) do
+        table.insert(allFilters, f)
+    end
+
+    local whereClause = (#allFilters > 0) and ("WHERE " .. table.concat(allFilters, " AND ")) or ""
+
+    local sql = ([[
     SELECT r.*, u.pseudo, t.name as trackName
     FROM skulrag_races_races r
     LEFT JOIN skulrag_races_users u ON r.identifier = u.identifier
     LEFT JOIN skulrag_races_tracks t ON r.trackId = t.id
-    WHERE NOT EXISTS (
-        SELECT 1 FROM skulrag_races_history h
-        WHERE h.raceId = r.id
-          AND (h.isFinished = 1 OR h.isCanceled = 1 OR h.isStarted = 1)
-    )
-    ]]
-
+    %s
+    ]]):format(whereClause)
 
     local bool, result = pcall(function()
         return MySQL.query.await(sql, params)
@@ -391,7 +396,8 @@ lib.callback.register('__sk_races:getRacesHistory', function(source, cb)
 
     for _, race in ipairs(history) do
         -- Récupérer le nom de l'initiateur
-        local initiator = MySQL.scalar.await('SELECT pseudo FROM skulrag_races_users WHERE identifier = ?', {race.initiator})
+        local initiator = MySQL.scalar.await('SELECT pseudo FROM skulrag_races_users WHERE identifier = ?',
+            {race.initiator})
         local winner = nil
 
         -- Récupérer les résultats des participants
@@ -399,7 +405,8 @@ lib.callback.register('__sk_races:getRacesHistory', function(source, cb)
 
         if race.isFinished then
             for _, participant in ipairs(json.decode(race.finishers)) do
-                local participantPseudo = MySQL.scalar.await('SELECT pseudo FROM skulrag_races_users WHERE identifier = ?', {participant.identifier})
+                local participantPseudo = MySQL.scalar.await(
+                    'SELECT pseudo FROM skulrag_races_users WHERE identifier = ?', {participant.identifier})
 
                 table.insert(results, {
                     rank = participant.rank,
@@ -432,5 +439,204 @@ lib.callback.register('__sk_races:getRacesHistory', function(source, cb)
     end
 
     return result
+end)
+
+lib.callback.register('__sk_races:postCancelRace', function(src, raceId)
+    local player = exports.qbx_core:GetPlayer(src)
+    if not player then
+        lib.notify({
+            title = 'System',
+            description = "Tu n'es pas connecté.",
+            type = 'error'
+        }, src)
+        return
+    end
+
+    if not raceId then
+        lib.notify({
+            title = 'System',
+            description = "Usage: /sk_cancelRace <raceId>",
+            type = 'error'
+        }, src)
+        return
+    end
+
+    -- Chercher la course
+    local race = MySQL.single.await('SELECT * FROM skulrag_races_races WHERE id = ?', {raceId})
+    if not race then
+        lib.notify({
+            title = 'System',
+            description = "Course non trouvée.",
+            type = 'error'
+        }, src)
+        return
+    end
+
+    -- Vérifier ownership
+    if race.identifier ~= player.PlayerData.citizenid then
+        lib.notify({
+            title = 'System',
+            description = "Tu n'es pas le propriétaire de cette course !",
+            type = 'error'
+        }, src)
+        return
+    end
+
+    -- Supprimer la course
+    local affectedRows = MySQL.update.await('DELETE FROM skulrag_races_races WHERE id = ?', {raceId})
+    if affectedRows and affectedRows > 0 then
+        lib.notify({
+            title = 'System',
+            description = "Course supprimée avec succès.",
+            type = 'success'
+        }, src)
+
+        -- Met à jour l’historique : annulation
+        local ok, err = pcall(function()
+            MySQL.update.await('UPDATE skulrag_races_history SET isCanceled = 1 WHERE raceId = ?', {raceId})
+        end)
+        if not ok then
+            print("[HISTORY] Erreur MAJ annulation historique :", err)
+        end
+
+        -- Notifier tous les participants, si il y en a
+        local registeredPlayers = {}
+        if race.registeredPlayers and race.registeredPlayers ~= "" then
+            local decoded = json.decode(race.registeredPlayers)
+            if type(decoded) == "table" then
+                registeredPlayers = decoded
+            end
+        end
+        for _, cid in ipairs(registeredPlayers) do
+            local target = exports.qbx_core:GetPlayerByCitizenId(cid)
+            if target then
+                -- Tu dois définir ToFrDate si besoin (formatage FR date)
+                local displayDate = race.date
+                if ToFrDate ~= nil then
+                    displayDate = ToFrDate(race.date)
+                end
+                TriggerClientEvent("__sk_races:raceCanceled", target.PlayerData.source, displayDate)
+            end
+        end
+    else
+        lib.notify({
+            title = 'System',
+            description = "Erreur : Impossible de supprimer la course.",
+            type = 'error'
+        }, src)
+    end
+end)
+
+lib.callback.register('__sk_races:postStartRace', function(src, data)
+    local player = exports.qbx_core:GetPlayer(src)
+    if not player then
+        print("NOT PLAYER")
+        lib.notify({
+            title = 'System',
+            description = "Tu n'es pas connecté.",
+            type = 'error',
+            position = 'top'
+        }, src)
+        return
+    end
+
+    -- Chercher la course
+    local raceId = data.id
+    local race = MySQL.single.await('SELECT * FROM skulrag_races_races WHERE id = ?', {raceId})
+    if not race then
+        lib.notify({
+            title = 'System',
+            description = 'Course non trouvée.',
+            type = 'error',
+            position = 'top'
+        }, src)
+        return
+    end
+
+    -- Vérifier que c'est le créateur
+    if race.identifier ~= player.PlayerData.citizenid then
+        lib.notify({
+            title = 'System',
+            description = "Tu n'es pas le propriétaire de cette course !",
+            type = 'error',
+            position = 'top'
+        }, src)
+        return
+    end
+
+    -- Vérifie que la date de la course est aujourd'hui
+    -- race.date est un timestamp (en millisecondes !)
+    local raceDateUnix = math.floor(tonumber(race.date) / 1000) -- En secondes arrondi
+    local raceDay = os.date("%Y-%m-%d", raceDateUnix) -- "YYYY-MM-DD"
+    local now = os.date("%Y-%m-%d") -- Aujourd'hui, "YYYY-MM-DD"
+
+    if raceDay ~= now then
+        lib.notify({
+            title = 'System',
+            description = ("Tu ne peux démarrer cette course que le jour prévu (%s)."):format(raceDay),
+            type = 'error',
+            position = 'top'
+        }, src)
+        return
+    end
+
+    -- Load les checkpoints du circuit
+    local track = MySQL.single.await('SELECT * FROM skulrag_races_tracks WHERE id = ?', {race.trackId})
+    if not track or not track.checkpoints then
+        lib.notify({
+            title = 'System',
+            description = "Impossible de charger les checkpoints de ce circuit.",
+            type = 'error'
+        }, src)
+        return
+    end
+
+    -- Décode la colonne checkpoints (json)
+    local checkpoints = json.decode(track.checkpoints)
+    if not checkpoints or type(checkpoints) ~= "table" or #checkpoints == 0 then
+        lib.notify({
+            title = 'System',
+            description = "Circuit invalide (aucun checkpoint).",
+            type = 'error'
+        }, src)
+        return
+    end
+
+    -- Insère checkpoints dans race
+    race.checkpoints = checkpoints
+    race.trackType = track.type
+
+    -- Décode joueurs inscrits
+    local registeredPlayers = {}
+    if race.registeredPlayers and race.registeredPlayers ~= "" then
+        local decoded = json.decode(race.registeredPlayers)
+        if type(decoded) == "table" then
+            registeredPlayers = decoded
+        end
+    end
+
+    -- Pour chaque joueur inscrit, démarrer la course client-side
+    for _, cid in ipairs(registeredPlayers) do
+        local target = exports.qbx_core:GetPlayerByCitizenId(cid)
+        if target then
+            TriggerClientEvent("__sk_races:startRace", target.PlayerData.source, race)
+        end
+    end
+
+    -- MAJ historique après démarrage
+    local ok, err = pcall(function()
+        MySQL.update.await('UPDATE skulrag_races_history SET isStarted = 1 WHERE raceId = ?',
+            {raceId})
+    end)
+    if not ok then
+        print("[HISTORY] Erreur MAJ course dans history :", err)
+    end
+
+    lib.notify({
+        title = 'System',
+        description = "Course démarrée pour tous les participants !",
+        type = 'success',
+        position = 'top'
+    }, src)
 end)
 

@@ -51,6 +51,16 @@ function getDatePartsFromTimestampMs(ts)
     return os.date("*t", s).year, os.date("*t", s).month, os.date("*t", s).day
 end
 
-
+function checkpointToVector(checkpoint)
+    if checkpoint.x and checkpoint.y and checkpoint.z then
+        return vector3(checkpoint.x, checkpoint.y, checkpoint.z)
+    elseif #checkpoint == 3 then
+        return vector3(checkpoint[1], checkpoint[2], checkpoint[3])
+    elseif type(checkpoint) == "vector3" then
+        return checkpoint
+    else
+        error("Format de checkpoint inconnu: " .. tostring(checkpoint))
+    end
+end
 
 

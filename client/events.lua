@@ -122,13 +122,11 @@ function raceMainLoop(raceId)
                 else
                     -- DERNIER TOUR
                     -- On vient de repasser sur CP1 juste après la boucle = ARRIVEE!
-                    print('FINI LAPS')
                     break
                 end
             else
                 -- mode sprint
                 if currentCheckpoint == #checkpoints then
-                    print('FINI SPRINT')
                     break
                 end
                 currentCheckpoint = currentCheckpoint + 1

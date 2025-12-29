@@ -62,6 +62,7 @@ export default function RaceHistory() {
     const [races, setRaces] = useState([]);
     const [loading, setLoading] = useState(false);
     const [delayedLoading, setDelayedLoading] = useState(false);
+    const [confirmCancelRace, setConfirmCancelRace] = useState(null); // null ou race à annuler
 
     function fetchRaces() {
         setLoading(true);
@@ -135,6 +136,17 @@ export default function RaceHistory() {
                                 </button>
                                 {opened && (
                                     <div className="px-4 pb-4 pt-2 bg-[#23312c] text-white">
+                                        {race.owner && status === "running" && (
+                                            <div className="flex justify-end mb-2">
+                                                <button
+                                                    className="bg-[#C05708] hover:bg-[#944205] text-white px-4 py-1 text-sm font-semibold rounded transition-all duration-200"
+                                                    onClick={() => setConfirmCancelRace(race.id)}
+                                                >
+                                                    {t("races.cancel", "Arrêter")}
+                                                </button>
+                                            </div>
+                                        )}
+
                                         {/* Contenu détaillé, exemple avec le tableau */}
                                         <table className="w-full text-white">
                                             <thead>
@@ -169,6 +181,25 @@ export default function RaceHistory() {
                     })}
                 </div>
             </div>
+            <div className="text-center mt-2 text-gray-400 flex-shrink-0">{t("racesScreen.wheelScroll")}</div>
+            {confirmCancelRace && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+                        <div className="bg-[#1d2823] rounded-lg p-6 w-full max-w-md shadow-lg text-white border border-[#3BE696]">
+                            <div className="font-bold text-lg mb-2">{t("races.cancelTitle", "Arrêter la course ?")}</div>
+                            <div className="mb-6">{t("races.cancelConfirm", "Es-tu sûr de vouloir arrêter la course ?")}</div>
+                            <div className="flex justify-end gap-3">
+                                <button
+                                    className="px-4 py-1 rounded bg-gray-500 text-white hover:bg-gray-600"
+                                    onClick={() => setConfirmCancelRace(null)}
+                                >{t("cancel", "Annuler")}</button>
+                                <button
+                                    className="px-4 py-1 rounded bg-[#C05708] text-white hover:bg-[#944205]"
+                                    onClick={() => fetchNui("__sk_races:postCancelRace", confirmCancelRace).then(() => setConfirmCancelRace(null)).finally(() => fetchRaces())}
+                                >{t("races.cancelNow", "Oui, arrêter")}</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
         </div>
     );
 }

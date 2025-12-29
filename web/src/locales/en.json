@@ -28,6 +28,7 @@
   "online": "Race’s Online !",
   "ended": "Race’s ended !",
   "entriesLeft": "Entries left : {{count}}",
+  "start": "Start Race",
   "cancel": "Cancel participation",
   "register": "Register now !",
   "initiatedBy": "Initiated by : {{name}}",

@@ -19,7 +19,6 @@ shared_script {
 
 client_scripts {
 	'@qbx_core/modules/playerdata.lua',
-	'configs/config.lua',
 	'client/*.lua'
 }
 

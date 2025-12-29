@@ -28,6 +28,7 @@
   "online": "Course en ligne !",
   "ended": "Course terminée !",
   "entriesLeft": "Places restantes : {{count}}",
+  "start": "Démarrer la course",
   "cancel": "Annuler la participation",
   "register": "S’inscrire !",
   "initiatedBy": "Organisée par : {{name}}",
