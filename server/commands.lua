@@ -17,7 +17,7 @@ lib.addCommand('sk_addcheckpoint', {
         return
     end
 
-    local playerPed = PlayerPedId()
+    local playerPed = GetPlayerPed(source)
     local position = GetEntityCoords(playerPed)
 
     local src = source
@@ -30,7 +30,7 @@ lib.addCommand('sk_addcheckpoint', {
     local distanceToAdd = 0.0
     if prevCheckpoint ~= nil then
         local prevVec = checkpointToVector(prevCheckpoint)
-        distanceToAdd = #(vector3(x, y, z) - prevVec)
+        distanceToAdd = #(vector3(position.x, position.y, position.z) - prevVec)
     end
 
     table.insert(checkpoints, {
