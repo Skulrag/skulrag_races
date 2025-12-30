@@ -44,6 +44,6 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          files: fivem_release.zip
+          files: skulrag_races_release.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
