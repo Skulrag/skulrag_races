@@ -9,6 +9,8 @@
 **skulrag_races** est un script *FiveM* destiné aux serveurs roleplay, **basé sur le framework QBox**.  
 Il permet aux joueurs de créer leurs propres circuits et d'organiser tout type de course (*seule votre imagination sera votre limite*).
 
+La fonction "switch" du type de course "Légale / Illégale" est pour le moment inutile, une prochaine version du script intégrera le fait de cacher les courses illégales aux joueurs ayant un job déifni dans une liste de configuration (exemple : police, fbi, ...).
+
 ---
 
 ## 📦 Dépendances obligatoires
@@ -55,6 +57,8 @@ Assurez-vous qu'elles sont installées et correctement configurées sur votre se
 
 **skulrag_races** is a *FiveM* script designed for roleplay servers, **based on the QBox framework**.  
 It allows players to create their own circuits and organize any type of race (*only your imagination is the limit*).
+
+The "switch" function for the "Legal / Illegal" race type is currently unused. In a future version of the script, illegal races will be hidden from players who have a job defined in a configuration list (for example: police, FBI, etc.).
 
 ---
 

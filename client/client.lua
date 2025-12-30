@@ -1,4 +1,4 @@
-RegisterCommand('openui', function()
+RegisterCommand('sk_openui', function()
     SetNuiFocus(true, true)
     SendNUIMessage({
         action = "skulrag_races_setVisible",

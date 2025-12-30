@@ -14,7 +14,7 @@ export default function RacesScreen() {
   const [delayedLoading, setDelayedLoading] = useState(false);
   const [confirmStartRace, setConfirmStartRace] = useState(null);
   const [startLoadingId, setStartLoadingId] = useState(null);
-  const [confirmCancelRace, setConfirmCancelRace] = useState(null); // null ou race à annuler
+  const [confirmCancelRace, setConfirmCancelRace] = useState(null);
 
 
   const toggle = (k) => setFilters((f) => ({ ...f, [k]: !f[k] }));
@@ -25,7 +25,7 @@ export default function RacesScreen() {
       fetchRaces();
     }).finally(() => {
       setStartLoadingId(null);
-      setConfirmStartRace(null); // Ferme la modale
+      setConfirmStartRace(null);
     });
   };
 
@@ -110,7 +110,6 @@ export default function RacesScreen() {
                     </span>
                   </div>
                 </div>
-                {/* ...dans ta map des courses, dans la card de chaque course... */}
                 <div className="flex-1 flex items-end justify-end">
                   <div className="flex flex-row gap-x-2 items-end">
                     {/* REGISTER */}

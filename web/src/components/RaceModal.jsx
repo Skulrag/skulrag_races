@@ -31,48 +31,42 @@ export default function RaceModal({ track, onClose }) {
     e.preventDefault();
     setError("");
     if (!isValid) {
-      setError("Veuillez remplir tous les champs obligatoires.");
+      setError("raceModal.error.required");
       return;
     }
     if (Number(cash) < 0) {
-      setError("Le cashprize doit être positif ou à zéro.");
+      setError("raceModal.error.cashPositive");
       return;
     }
-
     if (Number(entries) <= 0) {
-      setError("Le nombre de participants doit être positif.");
+      setError("raceModal.error.entriesPositive");
       return;
     }
     if (isLaps && Number(laps) < 1) {
-      setError("Nombre de tours minimum : 1.");
+      setError("raceModal.error.lapsMin");
       return;
     }
-    setLoading(true); // Active le loader !
+    setLoading(true);
     try {
       await onCreateRace({ id: track?.id, date, laps: isLaps ? Number(laps) : 0, cashprize: Number(cash), type, entries });
     } finally {
-      setLoading(false); // Désactive après soumission (ou erreur)
+      setLoading(false);
     }
   }
-
 
   return (
     <div className="fixed inset-0 bg-opacity-80 flex items-center justify-center z-50 font-mono">
       <div className="bg-black border-25 border-[#344D42] px-6 py-10 w-full max-w-md flex flex-col items-center relative mx-2">
         <button
           onClick={onClose}
-          aria-label="Fermer"
+          aria-label={t("raceModal.buttonCancel")}
           className="absolute top-3 right-4 text-2xl text-[#53756E] hover:text-[#70bfae] focus:outline-none"
         >
           &times;
         </button>
         <div className="w-full text-center text-base leading-6 text-white mb-6 select-none">
-          <div className="mb-1 font-mono">/!\ IMPORTANT /!\</div>
-          <div>
-            Vous êtes sur le point de créer une course.<br />
-            Veillez à être présent le moment venu,<br />
-            seulement vous pourrez déclencher le départ.
-          </div>
+          <div className="mb-1 font-mono">{t("raceModal.modalWarningTitle")}</div>
+          <div dangerouslySetInnerHTML={{ __html: t("raceModal.modalWarningDesc") }} />
         </div>
         <div className="text-[#14FF6C] text-2xl font-bold mb-8">
           ID : <span className="tracking-wider">{track?.id}</span>
@@ -81,11 +75,11 @@ export default function RaceModal({ track, onClose }) {
           {/* Switch type */}
           <div className="w-full flex flex-col items-center mb-10">
             <div className="mb-2 text-lg">
-              {t("createRaceScreen.chooseType", "Choisir le type de course")}
+              {t("createRaceScreen.chooseType")}
             </div>
             <div className="flex gap-4 items-center">
               <span className={type === "legal" ? "font-bold" : "opacity-60"}>
-                {t("createRaceScreen.type.legal", "Legal")}
+                {t("createRaceScreen.type.legal")}
               </span>
               <SwitchButton
                 checked={type === "illegal"}
@@ -93,10 +87,11 @@ export default function RaceModal({ track, onClose }) {
                 id="switch-tracktype"
               />
               <span className={type === "illegal" ? "font-bold" : "opacity-60"}>
-                {t("createRaceScreen.type.illegal", "Illegal")}
+                {t("createRaceScreen.type.illegal")}
               </span>
             </div>
           </div>
+          {/* Date */}
           <div className="w-full mb-4">
             <DatePicker
               selected={date}
@@ -105,14 +100,14 @@ export default function RaceModal({ track, onClose }) {
               timeIntervals={5}
               timeFormat="HH:mm"
               dateFormat="yyyy-MM-dd HH:mm"
-              placeholderText="Choisir date et heure"
+              placeholderText={t("raceModal.datePlaceholder")}
               className="w-full border-2 border-[#344D42] bg-transparent px-4 py-4 text-white text-center focus:outline-none focus:border-[#53756E] transition placeholder-white placeholder-opacity-60"
               calendarClassName="bg-[#191b1c] border-[#53756E] text-white"
               popperClassName="z-50 font-mono"
               required
             />
           </div>
-
+          {/* N laps */}
           {isLaps && (
             <input
               type="number"
@@ -121,32 +116,33 @@ export default function RaceModal({ track, onClose }) {
               value={laps}
               onChange={e => setLaps(e.target.value)}
               className="w-full mb-4 border-2 border-[#344D42] bg-transparent px-4 py-4 text-white text-center focus:outline-none focus:border-[#53756E] focus:ring-2 ring-[#14FF6C] transition placeholder-white placeholder-opacity-60"
-              placeholder="Nombre de tours"
+              placeholder={t("raceModal.lapsPlaceholder")}
               required={isLaps}
             />
           )}
-
+          {/* Cashprize */}
           <input
             type="number"
             min={0}
             value={cash}
             onChange={e => setCash(e.target.value)}
             className="w-full mb-8 border-2 border-[#344D42] px-4 py-4 bg-transparent text-white text-center focus:outline-none focus:border-[#53756E] transition placeholder-white placeholder-opacity-60"
-            placeholder="Indiquer un cashprize total."
+            placeholder={t("raceModal.cashPlaceholder")}
             required
           />
-
+          {/* Entries */}
           <input
             type="number"
             min={0}
             value={entries}
             onChange={e => setEntries(e.target.value)}
             className="w-full mb-8 border-2 border-[#344D42] px-4 py-4 bg-transparent text-white text-center focus:outline-none focus:border-[#53756E] transition placeholder-white placeholder-opacity-60"
-            placeholder="Indiquer un nombre de participants."
+            placeholder={t("raceModal.entriesPlaceholder")}
             required
           />
-          {error && <div className="mb-4 text-red-500 text-center">{error}</div>}
-
+          {/* Error */}
+          {error && <div className="mb-4 text-red-500 text-center">{t(error)}</div>}
+          {/* Submit */}
           <button
             className="w-full mb-4 bg-[#344D42] hover:bg-[#5d8a7e] py-4 text-lg font-semibold transition disabled:opacity-40 flex items-center justify-center"
             disabled={!isValid || loading}
@@ -160,19 +156,19 @@ export default function RaceModal({ track, onClose }) {
                     d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
                   </path>
                 </svg>
-                {t("createRaceScreen.loading", "Création...")}
+                {t("createRaceScreen.loading")}
               </>
             ) : (
-              t("createRaceScreen.confirm", "Confirmer")
+              t("createRaceScreen.confirm")
             )}
           </button>
-
+          {/* Cancel */}
           <button
             className="w-full border border-[#344D42] py-4 text-base font-normal text-white transition"
             type="button"
             onClick={onClose}
           >
-            Annuler
+            {t("raceModal.buttonCancel")}
           </button>
         </form>
       </div>

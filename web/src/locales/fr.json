@@ -15,9 +15,9 @@
   "raceButton": "Concourir !",
   "wheelScroll": "Roulez la molette pour monter/descendre",
   "trackId": "ID : {{id}}",
-  "confirmDeleteTitle": "Delete track \"{{title}}\"?",
-  "cancel": "Cancel",
-  "confirm": "Delete"
+  "confirmDeleteTitle": "Supprimer la course ?",
+  "cancel": "Annuler",
+  "confirm": "Supprimer"
 },
 "racesScreen": {
   "filterInitiated": "Afficher seulement les courses que j'ai créées",
@@ -80,5 +80,18 @@
     "legal": "Legal",
     "illegal": "Illegal"
   }
+},
+"raceModal": {
+  "modalWarningTitle": "/!\\ IMPORTANT /!\\",
+  "modalWarningDesc": "Vous êtes sur le point de créer une course.<br />Veillez à être présent le moment venu,<br />seulement vous pourrez déclencher le départ.",
+  "datePlaceholder": "Choisir date et heure",
+  "lapsPlaceholder": "Nombre de tours",
+  "cashPlaceholder": "Cashprize total",
+  "entriesPlaceholder": "Nombre de participants",
+  "buttonCancel": "Annuler",
+  "error.required": "Veuillez remplir tous les champs obligatoires.",
+  "error.cashPositive": "Le cashprize doit être positif ou à zéro.",
+  "error.entriesPositive": "Le nombre de participants doit être positif.",
+  "error.lapsMin": "Nombre de tours minimum : 1."
 }
 }

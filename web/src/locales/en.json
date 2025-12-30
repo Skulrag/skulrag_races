@@ -16,8 +16,8 @@
   "wheelScroll": "Wheel Scroll to go up/down",
   "trackId": "ID: {{id}}",
   "confirmDeleteTitle": "Supprimer le circuit « {{title}} » ?",
-  "cancel": "Annuler",
-  "confirm": "Supprimer"
+  "cancel": "Cancel",
+  "confirm": "Delete"
 },
 "racesScreen": {
   "filterInitiated": "Only show races I initiated",
@@ -80,5 +80,18 @@
     "legal": "Legal",
     "illegal": "Illegal"
   }
+},
+"raceModal": {
+  "modalWarningTitle": "/!\\ IMPORTANT /!\\",
+  "modalWarningDesc": "You are about to create a new race.<br />Make sure you are present when the time comes,<br />only you can start the race.",
+  "datePlaceholder": "Choose date and time",
+  "lapsPlaceholder": "Number of laps",
+  "cashPlaceholder": "Total cashprize",
+  "entriesPlaceholder": "Participant count",
+  "buttonCancel": "Cancel",
+  "error.required": "Please fill in all required fields.",
+  "error.cashPositive": "Cashprize must be positive or zero.",
+  "error.entriesPositive": "Entries must be a positive number.",
+  "error.lapsMin": "Minimum number of laps: 1."
 }
 }
