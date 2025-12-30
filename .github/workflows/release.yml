@@ -1,0 +1,52 @@
+name: Build & Release FiveM Script
+
+on:
+  push:
+    tags:
+      - 'v*'   # Lance le workflow sur chaque tag "v1.0.0", "vX.Y.Z", ...
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout du repo
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      # 2. Build du front web
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install web dependencies
+        working-directory: ./web
+        run: npm install
+
+      - name: Build web assets
+        working-directory: ./web
+        run: npm run build
+
+      # 3. Copier les assets générés au bon endroit dans le script (exemple : web/dist vers web-build)
+      - name: Préparer le dossier release
+        run: |
+          mkdir out
+          # Copier scripts principaux +/- dossiers spécifiques :
+          cp -r fxmanifest.lua __resource.lua resource.lua server out/ || true
+          # Copier assets de build frontend :
+          cp -r web/dist out/web
+          # Ajouter tout autre fichier ou dossier nécessaire selon ton script :
+
+      # 4. Zipper le tout
+      - name: Zipper la release
+        run: cd out && zip -r ../skulrag_races_release.zip .
+
+      # 5. Créer la release GitHub avec l'archive
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: fivem_release.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
