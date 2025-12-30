@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - 'v*'   # Lance le workflow sur chaque tag "v1.0.0", "vX.Y.Z", ...
-      
+
 permissions:
   contents: write
 
@@ -36,7 +36,7 @@ jobs:
         run: |
           mkdir out
           # Copier scripts principaux +/- dossiers spécifiques :
-          cp -r fxmanifest.lua skulrag_races.sql config html client server out/ || true
+          cp -r README.md fxmanifest.lua skulrag_races.sql config html client server out/ || true
 
       # 4. Zipper le tout
       - name: Zipper la release
