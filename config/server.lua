@@ -1,3 +1,3 @@
 Config = {}
 
-Config.pin = '000000'
+Config.pin = '0000'
